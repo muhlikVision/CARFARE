@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "157762549226",
+    "project_id": "carfare-dc6e2",
+    "storage_bucket": "carfare-dc6e2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:157762549226:android:53b6bb36949c02ccee6e93",
+        "android_client_info": {
+          "package_name": "com.carfare.carfare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "157762549226-nbica5etjv2d0obiqumcntau2e1rqu9q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9bO4nhOKFNOaCNUvU2_QvbJXJErwKwOQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "157762549226-nbica5etjv2d0obiqumcntau2e1rqu9q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
+
+FToast fToast;
 
 final kHintTextStyle = TextStyle(
   color: Colors.white54,
@@ -22,3 +26,49 @@ final kBoxDecorationStyle = BoxDecoration(
     ),
   ],
 );
+
+
+const kSendButtonTextStyle = TextStyle(
+  color: Colors.lightGreenAccent,
+  fontWeight: FontWeight.bold,
+  fontSize: 18.0,
+);
+
+const kMessageTextFieldDecoration = InputDecoration(
+  contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+  hintText: 'Type your message here...',
+  border: InputBorder.none,
+  fillColor: Colors.black, focusColor: Colors.black, hoverColor: Colors.black,
+);
+
+const kMessageContainerDecoration = BoxDecoration(
+  border: Border(
+    top: BorderSide(color: Colors.yellowAccent, width: 2.0),
+  ),
+);
+
+showToast(String text, MaterialAccentColor color, IconData icon) {
+  Widget toast = Container(
+    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(25.0),
+      color: color,
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon),
+        SizedBox(
+          width: 12.0,
+        ),
+        Text(text),
+      ],
+    ),
+  );
+  fToast.showToast(
+    child: toast,
+    gravity: ToastGravity.BOTTOM,
+    toastDuration: Duration(seconds: 2),
+  );
+}
+
