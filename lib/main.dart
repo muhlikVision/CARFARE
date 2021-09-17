@@ -42,10 +42,12 @@ class _CarFareState extends State<CarFare>{
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         textTheme: TextTheme(
           body1: TextStyle(color: Colors.black54),
         ),
+        backgroundColor: Color(0xFF141313),
       ),
 
       initialRoute: currentPage,

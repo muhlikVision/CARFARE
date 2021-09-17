@@ -118,7 +118,7 @@ class ButtonBuilder extends StatelessWidget {
           minWidth: 200.0,
           height: 42.0,
           child: Text(
-            text,
+            text, style: TextStyle(fontSize: 15),
           ),
         ),
       ),
@@ -127,13 +127,14 @@ class ButtonBuilder extends StatelessWidget {
 }
 
 class InputField extends StatelessWidget {
-  InputField({this.onChange, this.text, this.bcolor, this.chk, this.type});
+  InputField({this.onChange, this.text, this.bcolor, this.chk, this.type, this.tec});
   final Function onChange;
   final String text;
   final Color bcolor;
   final bool chk;
   final TextInputType type;
-
+  final TextEditingController tec;
+  
   bool checkNull(bool chk) {
     if (chk == null)
       return false;
@@ -147,15 +148,22 @@ class InputField extends StatelessWidget {
     else
       return type;
   }
-
+  TextEditingController checkTec(TextEditingController text) {
+    if (text == null)
+      return TextEditingController();
+    else
+      return tec;
+  }
+  
   @override
   Widget build(BuildContext context) {
     //
     return TextField(
+      controller: checkTec(tec),
       keyboardType: checkText(type),
       obscureText: checkNull(chk),
       textAlign: TextAlign.center,
-      style: TextStyle(color: Colors.yellowAccent),
+      style: TextStyle(color: Colors.white),
       onChanged: onChange,
       decoration: InputDecoration(
         hintText: text,
@@ -168,7 +176,7 @@ class InputField extends StatelessWidget {
           borderRadius: BorderRadius.all(Radius.circular(32.0)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: bcolor, width: 2.0),
+          borderSide: BorderSide(color: bcolor, width: 4.0),
           borderRadius: BorderRadius.all(Radius.circular(32.0)),
         ),
       ),
