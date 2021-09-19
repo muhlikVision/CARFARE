@@ -29,12 +29,12 @@ class _LoginScreenState extends State<LoginScreen> {
       MobileVerificationState.SHOW_MOBILE_FORM_STATE;
 
 //vars
-  String email, password;
+  String verificationID;
+  String email, password, phone, otp;
   bool showSpinner = false;
   final msgTextCont = TextEditingController();
   final phoneController = TextEditingController();
   final otpController = TextEditingController();
-
 
   @override
   void initState() {
@@ -56,6 +56,27 @@ class _LoginScreenState extends State<LoginScreen> {
       showToast('Invalid Email Syntax', Colors.redAccent, Icons.clear);
       return false;
     }
+  }
+
+  void signInWithPhone(PhoneAuthCredential phoneAuthCredential) async {
+    setState(() {
+      showSpinner = true;
+    });
+    try {
+      final chkAuth = await _auth.signInWithCredential(phoneAuthCredential);
+      if(chkAuth.user != null){
+        showToast(
+            'LOGGED IN', Colors.lightGreenAccent, Icons.check);
+        Navigator.pushNamed(context, HomeScreen.id);
+      }
+    } on FirebaseAuthException catch (e) {
+      print(e);
+      _scaffoldKey.currentState.showSnackBar(SnackBar(
+          content: Text(e.message)));
+    }
+    setState(() {
+      showSpinner = false;
+    });
   }
 
   loginPage(context) {
@@ -150,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             InputField(
               onChange: (value) {
-                password = value;
+                phone = value;
               },
               bcolor: Colors.deepOrange,
               text: 'Enter Phone Number',
@@ -159,7 +180,36 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(
               height: 24.0,
             ),
-            ButtonBuilder(onPress: () {}, color: Colors.blue, text: 'VERIFY'),
+            ButtonBuilder(
+                onPress: () async {
+                  setState(() {
+                    showSpinner = true;
+                  });
+                  _auth.verifyPhoneNumber(
+                      phoneNumber: phone,
+                      verificationCompleted: (phoneAuthCredential) async {
+                        setState(() {
+                          showSpinner = false;
+                        });
+                        //signInWithPhone(phoneAuthCredential);
+                      },
+                      verificationFailed: (verificationFailed) async {
+                        _scaffoldKey.currentState.showSnackBar(SnackBar(
+                            content: Text(verificationFailed.message)));
+                        showSpinner = false;
+                      },
+                      codeSent: (verificationId, resendingToken) async {
+                        setState(() {
+                          showSpinner = false;
+                          currentState =
+                              MobileVerificationState.SHOW_OTP_FORM_STATE;
+                          this.verificationID = verificationId;
+                        });
+                      },
+                      codeAutoRetrievalTimeout: (verificationId) async {});
+                },
+                color: Colors.blue,
+                text: 'VERIFY'),
           ],
         ),
       ),
@@ -190,7 +240,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             InputField(
               onChange: (value) {
-                email = value;
+                otp = value;
               },
               bcolor: Colors.deepOrange,
               text: 'Enter OTP',
@@ -200,23 +250,35 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(
               height: 48.0,
             ),
-            ButtonBuilder(onPress: () {
-              setState(() {
-                currentState = MobileVerificationState.SHOW_OTP_FORM_STATE;
-              });
-            }, color: Colors.blue, text: 'VERIFY'),
+            ButtonBuilder(
+                onPress: () async {
+                  PhoneAuthCredential phoneAuthCredential = PhoneAuthProvider.credential(
+                      verificationId: verificationID, smsCode: otp);
+                  signInWithPhone(phoneAuthCredential);
+                },
+                color: Colors.blue,
+                text: 'VERIFY'),
           ],
         ),
       ),
     );
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        key: _scaffoldKey,
         backgroundColor: Color(0xFF141313),
-        body: currentState == MobileVerificationState.SHOW_MOBILE_FORM_STATE
-            ? loginPage(context)
-            : otpPage(context));
+        body: showSpinner
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : currentState == MobileVerificationState.SHOW_MOBILE_FORM_STATE
+                ? loginPage(context)
+                : otpPage(context));
   }
 }
+
+
