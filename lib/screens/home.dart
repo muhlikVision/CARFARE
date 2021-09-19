@@ -32,16 +32,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(color: Colors.white,
-          child: ButtonBuilder(onPress: () async {
-        SharedPreferences pref = await SharedPreferences.getInstance();
-        pref.remove('email');
-        showToast('LOGGED OUT', Colors.lightBlueAccent, Icons.check);
-        _auth.signOut();
-        Navigator.popAndPushNamed(context, LoginScreen.id);
-        //Navigator.pushNamed(context, LoginScreen.id);
-      },color: Colors.lightBlueAccent, text: 'logout')),
+    return WillPopScope(
+      onWillPop: () async {return;},
+      child: Center(
+        child: Container(color: Colors.white,
+            child: ButtonBuilder(onPress: () async {
+          SharedPreferences pref = await SharedPreferences.getInstance();
+          pref.remove('email');
+          showToast('LOGGED OUT', Colors.lightBlueAccent, Icons.check);
+          _auth.signOut();
+          Navigator.popAndPushNamed(context, LoginScreen.id);
+          //Navigator.pushNamed(context, LoginScreen.id);
+        },color: Colors.lightBlueAccent, text: 'logout')),
+      ),
     );
   }
 }

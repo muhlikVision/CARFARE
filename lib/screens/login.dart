@@ -64,10 +64,12 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       final chkAuth = await _auth.signInWithCredential(phoneAuthCredential);
-      if(chkAuth.user != null){
-        showToast(
-            'LOGGED IN', Colors.lightGreenAccent, Icons.check);
+      if (chkAuth.user != null) {
+        showToast('LOGGED IN', Colors.lightGreenAccent, Icons.check);
         Navigator.pushNamed(context, HomeScreen.id);
+        setState(() {
+          showSpinner = false;
+        });
       }
       setState(() {
         showSpinner = false;
@@ -84,7 +86,8 @@ class _LoginScreenState extends State<LoginScreen> {
   loginPage(context) {
     return ModalProgressHUD(
       inAsyncCall: showSpinner,
-      color: Colors.blue,
+      color: Colors.deepOrange,
+      progressIndicator: CircularProgressIndicator(color: Colors.deepOrange,),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
@@ -185,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             ButtonBuilder(
                 onPress: () async {
-                  if(phone != null && phone.length >=13) {
+                  if (phone != null && phone.length >= 13) {
                     setState(() {
                       showSpinner = true;
                     });
@@ -198,9 +201,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           //signInWithPhone(phoneAuthCredential);
                         },
                         verificationFailed: (verificationFailed) async {
-                          showToast(
-                              verificationFailed.message, Colors.redAccent,
-                              Icons.clear);
+                          showToast(verificationFailed.message,
+                              Colors.redAccent, Icons.clear);
                           setState(() {
                             showSpinner = false;
                           });
@@ -210,17 +212,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             showSpinner = false;
                             currentState =
                                 MobileVerificationState.SHOW_OTP_FORM_STATE;
-                            this.verificationID = verificationId;
+                            phoneController.clear();
                             phone = null;
+                            this.verificationID = verificationId;
                           });
                         },
                         codeAutoRetrievalTimeout: (verificationId) async {});
+                  } else {
+                    showToast(
+                        'Invalid Phone Syntax', Colors.redAccent, Icons.clear);
                   }
-                  else
-                    {
-                      showToast(
-                          'Invalid Phone Syntax', Colors.redAccent, Icons.clear);
-                    }
                 },
                 color: Colors.blue,
                 text: 'VERIFY'),
@@ -230,17 +231,29 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-
   otpPage(context) {
     return ModalProgressHUD(
       inAsyncCall: showSpinner,
-      color: Colors.blue,
+      color: Colors.deepOrange,
+      progressIndicator: CircularProgressIndicator(color: Colors.deepOrange,),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                RoundButtonBuilder(splashcolor: Colors.redAccent, sizeConstraints: 45, customButtonIcon: Icons.arrow_back, onPress: (){
+                  setState(() {
+                    currentState =
+                        MobileVerificationState.SHOW_MOBILE_FORM_STATE;
+                  });
+                  otpController.clear();
+                },),
+              ],
+            ),
             Flexible(
               child: Hero(
                 tag: 'logo',
@@ -267,24 +280,21 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             ButtonBuilder(
                 onPress: () async {
-                  if(otp != null && otp.length >=6) {
-                    PhoneAuthCredential phoneAuthCredential = PhoneAuthProvider
-                        .credential(
-                        verificationId: verificationID, smsCode: otp);
+                  if (otp != null && otp.length >= 6) {
+                    PhoneAuthCredential phoneAuthCredential =
+                        PhoneAuthProvider.credential(
+                            verificationId: verificationID, smsCode: otp);
                     signInWithPhone(phoneAuthCredential);
+                  } else {
+                    showToast('Invalid OTP', Colors.redAccent, Icons.clear);
+                    otpController.clear();
                   }
-                  else
-                    {
-                      showToast(
-                          'Invalid OTP', Colors.redAccent, Icons.clear);
-                      setState(() {
-                        currentState =
-                            MobileVerificationState.SHOW_MOBILE_FORM_STATE;
-                      });
-                    }
                 },
                 color: Colors.blue,
                 text: 'VERIFY'),
+            SizedBox(
+              height: 5.0,
+            ),
           ],
         ),
       ),
@@ -296,18 +306,17 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {return;},
+      onWillPop: () async {
+        return;
+      },
       child: Scaffold(
-          key: _scaffoldKey,
-          backgroundColor: Color(0xFF141313),
-          body:
-          currentState == MobileVerificationState.SHOW_MOBILE_FORM_STATE
-                  ? loginPage(context)
-                  : otpPage(context),
-        
+        key: _scaffoldKey,
+        resizeToAvoidBottomInset: true,
+        backgroundColor: Color(0xFF141313),
+        body: currentState == MobileVerificationState.SHOW_MOBILE_FORM_STATE
+            ? loginPage(context)
+            : otpPage(context),
       ),
     );
   }
 }
-
-

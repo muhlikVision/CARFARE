@@ -9,6 +9,39 @@ import 'package:flutter/painting.dart';
 
 final _firestore = FirebaseFirestore.instance; //send and get data
 
+
+class RoundButtonBuilder extends StatelessWidget {
+  final Color splashcolor;
+  final double sizeConstraints;
+  final IconData customButtonIcon;
+  final Function() onPress;
+
+  RoundButtonBuilder(
+      {@required this.splashcolor,
+        @required this.sizeConstraints,
+        @required this.customButtonIcon,
+        @required this.onPress});
+
+  @override
+  Widget build(BuildContext context) {
+    return RawMaterialButton(
+      onPressed: onPress,
+      shape: CircleBorder(),
+      fillColor: Colors.deepOrange,
+      elevation: 20.0,
+      constraints: BoxConstraints.tightFor(
+        width: sizeConstraints,
+        height: sizeConstraints,
+      ),
+      splashColor: splashcolor,
+      child: Icon(
+        customButtonIcon,
+        size: 28,
+        color: Colors.white,
+      ),
+    );
+  }
+}
 class MsgBubble extends StatelessWidget {
   final String msgText, msgSender, msgTime;
   final bool isMe;
@@ -96,9 +129,6 @@ class MsgBubble extends StatelessWidget {
       );
   }
 }
-
-
-
 class ButtonBuilder extends StatelessWidget {
   ButtonBuilder({this.color, @required this.onPress, this.text});
   final Color color;
@@ -125,7 +155,6 @@ class ButtonBuilder extends StatelessWidget {
     );
   }
 }
-
 class InputField extends StatelessWidget {
   InputField({this.onChange, this.text, this.bcolor, this.chk, this.type, this.tec});
   final Function onChange;

@@ -68,7 +68,7 @@ showToast(String text, MaterialAccentColor color, IconData icon) {
   fToast.showToast(
     child: toast,
     gravity: ToastGravity.BOTTOM,
-    toastDuration: Duration(seconds: 4),
+    toastDuration: Duration(seconds: 2),
   );
 }
 
