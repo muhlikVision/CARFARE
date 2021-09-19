@@ -69,14 +69,16 @@ class _LoginScreenState extends State<LoginScreen> {
             'LOGGED IN', Colors.lightGreenAccent, Icons.check);
         Navigator.pushNamed(context, HomeScreen.id);
       }
+      setState(() {
+        showSpinner = false;
+      });
     } on FirebaseAuthException catch (e) {
       print(e);
-      _scaffoldKey.currentState.showSnackBar(SnackBar(
-          content: Text(e.message)));
+      showToast(e.message, Colors.redAccent, Icons.clear);
+      setState(() {
+        showSpinner = false;
+      });
     }
-    setState(() {
-      showSpinner = false;
-    });
   }
 
   loginPage(context) {
@@ -176,37 +178,49 @@ class _LoginScreenState extends State<LoginScreen> {
               bcolor: Colors.deepOrange,
               text: 'Enter Phone Number',
               tec: phoneController,
+              type: TextInputType.phone,
             ),
             SizedBox(
               height: 24.0,
             ),
             ButtonBuilder(
                 onPress: () async {
-                  setState(() {
-                    showSpinner = true;
-                  });
-                  _auth.verifyPhoneNumber(
-                      phoneNumber: phone,
-                      verificationCompleted: (phoneAuthCredential) async {
-                        setState(() {
-                          showSpinner = false;
-                        });
-                        //signInWithPhone(phoneAuthCredential);
-                      },
-                      verificationFailed: (verificationFailed) async {
-                        _scaffoldKey.currentState.showSnackBar(SnackBar(
-                            content: Text(verificationFailed.message)));
-                        showSpinner = false;
-                      },
-                      codeSent: (verificationId, resendingToken) async {
-                        setState(() {
-                          showSpinner = false;
-                          currentState =
-                              MobileVerificationState.SHOW_OTP_FORM_STATE;
-                          this.verificationID = verificationId;
-                        });
-                      },
-                      codeAutoRetrievalTimeout: (verificationId) async {});
+                  if(phone != null && phone.length >=13) {
+                    setState(() {
+                      showSpinner = true;
+                    });
+                    _auth.verifyPhoneNumber(
+                        phoneNumber: phone,
+                        verificationCompleted: (phoneAuthCredential) async {
+                          setState(() {
+                            showSpinner = false;
+                          });
+                          //signInWithPhone(phoneAuthCredential);
+                        },
+                        verificationFailed: (verificationFailed) async {
+                          showToast(
+                              verificationFailed.message, Colors.redAccent,
+                              Icons.clear);
+                          setState(() {
+                            showSpinner = false;
+                          });
+                        },
+                        codeSent: (verificationId, resendingToken) async {
+                          setState(() {
+                            showSpinner = false;
+                            currentState =
+                                MobileVerificationState.SHOW_OTP_FORM_STATE;
+                            this.verificationID = verificationId;
+                            phone = null;
+                          });
+                        },
+                        codeAutoRetrievalTimeout: (verificationId) async {});
+                  }
+                  else
+                    {
+                      showToast(
+                          'Invalid Phone Syntax', Colors.redAccent, Icons.clear);
+                    }
                 },
                 color: Colors.blue,
                 text: 'VERIFY'),
@@ -215,6 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
 
   otpPage(context) {
     return ModalProgressHUD(
@@ -252,9 +267,21 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             ButtonBuilder(
                 onPress: () async {
-                  PhoneAuthCredential phoneAuthCredential = PhoneAuthProvider.credential(
-                      verificationId: verificationID, smsCode: otp);
-                  signInWithPhone(phoneAuthCredential);
+                  if(otp != null && otp.length >=6) {
+                    PhoneAuthCredential phoneAuthCredential = PhoneAuthProvider
+                        .credential(
+                        verificationId: verificationID, smsCode: otp);
+                    signInWithPhone(phoneAuthCredential);
+                  }
+                  else
+                    {
+                      showToast(
+                          'Invalid OTP', Colors.redAccent, Icons.clear);
+                      setState(() {
+                        currentState =
+                            MobileVerificationState.SHOW_MOBILE_FORM_STATE;
+                      });
+                    }
                 },
                 color: Colors.blue,
                 text: 'VERIFY'),
@@ -268,16 +295,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        key: _scaffoldKey,
-        backgroundColor: Color(0xFF141313),
-        body: showSpinner
-            ? Center(
-                child: CircularProgressIndicator(),
-              )
-            : currentState == MobileVerificationState.SHOW_MOBILE_FORM_STATE
-                ? loginPage(context)
-                : otpPage(context));
+    return WillPopScope(
+      onWillPop: () async {return;},
+      child: Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: Color(0xFF141313),
+          body:
+          currentState == MobileVerificationState.SHOW_MOBILE_FORM_STATE
+                  ? loginPage(context)
+                  : otpPage(context),
+        
+      ),
+    );
   }
 }
 

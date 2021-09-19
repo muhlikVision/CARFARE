@@ -61,14 +61,14 @@ showToast(String text, MaterialAccentColor color, IconData icon) {
         SizedBox(
           width: 12.0,
         ),
-        Text(text),
+        Flexible(child: Text(text)),
       ],
     ),
   );
   fToast.showToast(
     child: toast,
     gravity: ToastGravity.BOTTOM,
-    toastDuration: Duration(seconds: 2),
+    toastDuration: Duration(seconds: 4),
   );
 }
 
