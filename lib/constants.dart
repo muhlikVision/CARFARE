@@ -4,6 +4,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 FToast fToast;
 
+const color = Color(0xFF141313);
+
 final kHintTextStyle = TextStyle(
   color: Colors.white54,
   fontFamily: 'OpenSans',
@@ -68,7 +70,7 @@ showToast(String text, MaterialAccentColor color, IconData icon) {
   fToast.showToast(
     child: toast,
     gravity: ToastGravity.BOTTOM,
-    toastDuration: Duration(seconds: 2),
+    toastDuration: Duration(seconds: 3),
   );
 }
 

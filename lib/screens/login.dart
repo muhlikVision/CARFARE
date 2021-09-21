@@ -147,19 +147,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         showToast(
                             'LOGGED IN', Colors.lightGreenAccent, Icons.check);
                         Navigator.pushNamed(context, HomeScreen.id);
+                        msgTextCont.clear();
                       }
-                    } catch (e) {
-                      print(e);
-                      showToast(e, Colors.redAccent, Icons.clear);
+                    } on FirebaseAuthException catch (e) {
+                      showToast(e.message, Colors.redAccent, Icons.clear);
+                      setState(() {
+                        showSpinner = false;
+                      });
                     }
                     setState(() {
                       showSpinner = false;
                     });
-                    msgTextCont.clear();
                   } else {
                     showToast(
                         'Invalid Email Syntax', Colors.redAccent, Icons.clear);
                   }
+                  msgTextCont.clear();
                 },
                 color: Colors.green,
                 text: 'LOGIN'),
