@@ -70,13 +70,13 @@ class _HomeScreenState extends State<HomeScreen> {
       if (docSnapshot.exists) {
         Map<String, dynamic> data = docSnapshot.data();
 
-        final tname = data['Name']; //USerName
+        final tname = data['Name']['first']; //USerName
         name = tname.toString();
 
         setState(() {
           currentState = WAIT.DATA_FETCHED;
         });
-        print(data);
+        print(name);
         return tname.toString();
       }
     } catch (e) {
