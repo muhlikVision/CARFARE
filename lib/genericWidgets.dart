@@ -212,3 +212,46 @@ class InputField extends StatelessWidget {
     );
   }
 }
+
+class MessageStream extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _firestore.collection('messages').orderBy('timeAt').snapshots(),
+      builder: (context, snapshot) {
+        List<MsgBubble> messageBox = [];
+        if (!snapshot.hasData) {
+          return Center(
+            child: CircularProgressIndicator(
+              backgroundColor: Colors.limeAccent,
+            ),
+          );
+        }
+        final msgs = snapshot.data.docs.reversed;
+
+        for (var i in msgs) {
+          if (i.data() != null) {
+            var data = i.data() as Map<String, dynamic>;
+            final msgText = data['texts'];
+            final msgSender = data['sender'];
+            final msgTime = data['timeAt'];
+
+            var loggedinUser;
+            final currentUser = loggedinUser.email; //checking if sender is the logged in user to manipulate bubble
+
+            final msgBox = MsgBubble(msgText, msgSender, msgTime, currentUser == msgSender);
+            messageBox.add(msgBox);
+            //print(messageBox);
+          }
+        }
+        return Expanded(
+          child: ListView(
+            reverse: true,
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+            children: messageBox,
+          ),
+        );
+      },
+    );
+  }
+}
