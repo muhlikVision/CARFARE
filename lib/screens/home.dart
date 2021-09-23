@@ -70,14 +70,15 @@ class _HomeScreenState extends State<HomeScreen> {
       if (docSnapshot.exists) {
         Map<String, dynamic> data = docSnapshot.data();
 
-        final tname = data['Name']['first']; //USerName
-        name = tname.toString();
+        final tname = data['Name']['first'];
+        final lname = data['Name']['last'];//USerName
+        name = '$tname $lname';
 
         setState(() {
           currentState = WAIT.DATA_FETCHED;
         });
         print(name);
-        return tname.toString();
+        return name;
       }
     } catch (e) {
       showToast(e, Colors.redAccent, Icons.clear);
@@ -112,13 +113,25 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text('beta.v1'),
                 ),
                 ListTile(
-                  title: const Text('User Info'),
+                  title: const Text('Account Details'),
                   trailing: Icon(
                     Icons.person,
                     color: Colors.red,
                   ),
                   focusColor: color,
                   onTap: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  title: const Text('Payments'),
+                  trailing: Icon(
+                    Icons.money,
+                    color: Colors.red,
+                  ),
+                  focusColor: color,
+                  onTap: () {
+                    // Update the state of the app.
                     Navigator.pop(context);
                   },
                 ),
@@ -185,13 +198,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Container(
                     color: color,
                     child: Text(
-                      '',
+                      'UNDER CONSTRUCTION',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
               ),
-              Icon(Icons.directions_transit),
+              Icon(Icons.developer_board),
             ],
           ),
         ),
