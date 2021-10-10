@@ -4,7 +4,7 @@ description: A new Flutter application.
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0<3.0.0"
+  sdk: ">=2.2.0"
 
 dependencies:
   flutter:
@@ -21,6 +21,9 @@ dependencies:
   flutter_secure_storage: ^4.2.1
   shared_preferences: ^2.0.7
   fluttertoast: ^8.0.8
+  image_picker: ^0.7.2
+  camera: ^0.8.1
+  google_ml_kit: any
 
 dev_dependencies:
   flutter_test:

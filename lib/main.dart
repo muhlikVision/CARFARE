@@ -1,3 +1,5 @@
+import 'package:camera/camera.dart';
+import 'package:carfare/screens/guard_home.dart';
 import 'package:carfare/screens/home.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -6,10 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 
+List<CameraDescription> cameras = [];
 String currentPage = '';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  cameras = await availableCameras();
 
   SharedPreferences pref = await SharedPreferences.getInstance();
 
@@ -50,10 +55,11 @@ class _CarFareState extends State<CarFare>{
         backgroundColor: Color(0xFF141313),
       ),
 
-      initialRoute: currentPage,
+      initialRoute: GuardScreen.id, //temp
       routes: {
         LoginScreen.id: (context) => LoginScreen(),
         HomeScreen.id: (context) => HomeScreen(),
+        GuardScreen.id: (context) => GuardScreen(),
       },
 
     );
