@@ -1,6 +1,5 @@
 import 'package:carfare/VisionDetectorViews/camera_view.dart';
 import 'package:carfare/VisionDetectorViews/painters/text_detector_painter.dart';
-import 'package:carfare/VisionDetectorViews/text_detector_view.dart';
 import 'package:carfare/screens/login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,7 +23,6 @@ String num = '';
 int x = 0;
 List<String> numberPlate = [];
 
-FToast fToast;
 
 class GuardScreen extends StatefulWidget {
   static const String id = 'guard_screen';
@@ -33,9 +31,13 @@ class GuardScreen extends StatefulWidget {
 }
 
 class _TextDetectorViewState extends State<GuardScreen> {
+  final _auth = FirebaseAuth.instance; //auth data
+  final _firestore = FirebaseFirestore.instance;
   TextDetector textDetector = GoogleMlKit.vision.textDetector();
   bool isBusy = false;
   CustomPaint customPaint;
+
+  String sendToFb;
 
   @override
   void dispose() async {
@@ -57,117 +59,80 @@ class _TextDetectorViewState extends State<GuardScreen> {
     return CameraView(
       title: 'CARFARE Testing Phase',
       customPaint: customPaint,
-      onImage: (inputImage) {
-        processImage(inputImage);
+      onImage: (inputImage) async {
+        await processImage(inputImage);
       },
     );
-  }
-
-  showToast(String text) {
-    Widget toast = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25.0),
-        color: Colors.redAccent,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.check),
-          SizedBox(
-            width: 12.0,
-          ),
-          Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 30),),
-        ],
-      ),
-    );
-
-
-    fToast.showToast(
-      child: toast,
-      gravity: ToastGravity.CENTER,
-      toastDuration: Duration(seconds: 7),
-    );
-  }
-
-  List<String> func(String n) {
-    List<String> lel = [];
-    int start = 0;
-    for (int j = 0; j < n.length; j++) {
-      if (n[j] == '-' || n[j] == ' ' || n[j] == '\n' || j == n.length - 1) {
-        if (j == n.length - 1) {
-          j++;
-        }
-        lel.add(n.substring(start, j));
-        start = j + 1;
-      }
-    }
-    return lel;
   }
 
   void disPlate(List<String> n) {
     //LEB 15,1234
 
     List<int> temp;
-
-    for (int i = 0; i < n.length; i++) {
-      for (int j = 0; j < n[i].length; j++) {
-        temp = n[i].substring(j, j + 1).codeUnits;
-        //print('ASCII: $temp of ${n[i].substring(j, j + 1)}');
-        if (n[i].substring(j, j + 1) == '-' ||
-            n[i].substring(j, j + 1) == ' ' ||
-            n[i].substring(j, j + 1) == 'L' ||
-            temp[0] >= 48 && temp[0] <= 57) {
-          if (n[i].substring(j, j + 1) == ' ') {
-            List<String> tempS = n[i].split(' ');
-            print('tempS: $tempS');
-            numberPlate.add(tempS[0]);
-            numberPlate.add(tempS[1]);
-            tempS.clear();
-            j = n[i].length;
-          }
-          if (n[i].substring(j, j + 1) == 'L') {
-            List<String> tempS = [];
-            for(int l = 0; l < n[i].length; l++)
-            {
-              if(n[i].substring(l, l + 1) == '-')
-              {
-                tempS = n[i].split('-');
-                l = n[i].length;
-              }
-              else if (n[i].substring(l, l + 1) == ' ')
-              {
-                tempS = n[i].split(' ');
-                l = n[i].length;
-              }
-            }
-            print('tempSL: $tempS');
-            if (tempS.length == 2) {
+    try {
+      for (int i = 0; i < n.length; i++) {
+        for (int j = 0; j < n[i].length; j++) {
+          //print(j);
+          temp = n[i]
+              .substring(j, j + 1)
+              .codeUnits;
+          //print('ASCII: $temp of ${n[i].substring(j, j + 1)}');
+          if (n[i].substring(j, j + 1) == '-' ||
+              n[i].substring(j, j + 1) == ' ' ||
+              n[i].substring(j, j + 1) == 'L' ||
+              temp[0] >= 48 && temp[0] <= 57) {
+            if (n[i].substring(j, j + 1) == ' ') {
+              List<String> tempS = n[i].split(' ');
+              //print('tempS: $tempS');
               numberPlate.add(tempS[0]);
               numberPlate.add(tempS[1]);
               tempS.clear();
               j = n[i].length;
-            } else {
+            }
+            if (n[i].substring(j, j + 1) == 'L') {
+              List<String> tempS = [];
+              for (int l = 0; l < n[i].length; l++) {
+                if (n[i].substring(l, l + 1) == '-') {
+                  tempS = n[i].split('-');
+                  l = n[i].length;
+                }
+                else if (n[i].substring(l, l + 1) == ' ') {
+                  tempS = n[i].split(' ');
+                  l = n[i].length;
+                }
+              }
+              //print('tempSL: $tempS');
+              if (tempS.length == 2) {
+                numberPlate.add(tempS[0]);
+                numberPlate.add(tempS[1]);
+                tempS.clear();
+                j = n[i].length;
+              } else {
+                numberPlate.add(n[i]);
+                j = n[i].length;
+              }
+            } else if (n[i].substring(j, j + 1) == '-') {
+              List<String> tempS = n[i].split('-');
+              //print('tempS-: $tempS');
+              numberPlate.add(tempS[0]);
+              numberPlate.add(tempS[1]);
+              tempS.clear();
+              j = n[i].length;
+            }
+            if (temp[0] >= 48 && temp[0] <= 57) {
               numberPlate.add(n[i]);
               j = n[i].length;
             }
-          } else if (n[i].substring(j, j + 1) == '-') {
-            List<String> tempS = n[i].split('-');
-            print('tempS-: $tempS');
-            numberPlate.add(tempS[0]);
-            numberPlate.add(tempS[1]);
-            tempS.clear();
-            j = n[i].length;
+            //print('RES: ${n[i]}');
           }
-          if (temp[0] >= 48 && temp[0] <= 57) {
-            numberPlate.add(n[i]);
-            j = n[i].length;
-          }
-          print('RES: ${n[i]}');
         }
       }
     }
-
+    catch(e)
+    {
+      print(e);
+      showToast('$e', Colors.redAccent, Icons.cancel);
+    }
     // works for [LEC, 3378, 11]
     for (int i = 0; i < numberPlate.length; i++) {
       for (int j = 0; j < numberPlate[i].length; j++) {
@@ -183,6 +148,34 @@ class _TextDetectorViewState extends State<GuardScreen> {
     }
   }
 
+  void verify(List<String> n)async{
+    sendToFb = n.join('-');
+    getUserInfo();
+    print(sendToFb);
+  }
+  getUserInfo() async {
+    try {
+      var docSnapshot = await _firestore
+          .collection('Vehicles')
+          .doc(sendToFb)
+          .get();
+      if (docSnapshot.exists) {
+        Map<String, dynamic> data = docSnapshot.data();
+
+        final carName = data['Name'];
+        // setState(() {
+        //   currentState = WAIT.DATA_FETCHED;
+        // });
+        showToast('$carName has been Verified', Colors.greenAccent, Icons.check);
+      }
+      else
+        {
+          showToast('No record found', Colors.redAccent, Icons.clear);
+        }
+    } catch (e) {
+      showToast(e, Colors.redAccent, Icons.clear);
+    }
+  }
   Future<void> processImage(InputImage inputImage) async {
     if (isBusy) return;
     isBusy = true;
@@ -190,14 +183,12 @@ class _TextDetectorViewState extends State<GuardScreen> {
     num = recognisedText.text.toString();
     print('$num');
     List<String> n = num.split('\n');
-    print(n);
+    //print(n);
     disPlate(n);
-    print(numberPlate);
-    showToast('Vehicle Verified\n${numberPlate.toString()}');
-    // n = [''];
+    print('FINAL: $numberPlate');
+    verify(numberPlate);
+    showToast('$numberPlate', Colors.greenAccent, Icons.check);
     numberPlate.clear();
-    // x = 0;
-    //print(func(num));
     print('Found ${recognisedText.blocks.length} textBlocks');
     if (inputImage.inputImageData?.size != null &&
         inputImage.inputImageData?.imageRotation != null) {

@@ -8,14 +8,14 @@ import 'package:image_picker/image_picker.dart';
 
 import '../main.dart';
 
-enum ScreenMode { liveFeed, gallery }
+enum ScreenMode { gallery }
 
 class CameraView extends StatefulWidget {
   CameraView(
       {Key key,
       @required this.title,
       @required this.customPaint,
-      @required this.onImage,
+      this.onImage,
       this.initialDirection = CameraLensDirection.back})
       : super(key: key);
 
@@ -45,7 +45,7 @@ class _CameraViewState extends State<CameraView> {
         _cameraIndex = i;
       }
     }
-    _startLiveFeed();
+    //_startLiveFeed();
   }
 
   @override
@@ -62,16 +62,6 @@ class _CameraViewState extends State<CameraView> {
         actions: [
           Padding(
             padding: EdgeInsets.only(right: 20.0),
-            child: GestureDetector(
-              onTap: _switchScreenMode,
-              child: Icon(
-                _mode == ScreenMode.liveFeed
-                    ? Icons.photo_library_outlined
-                    : (Platform.isIOS
-                        ? Icons.camera_alt_outlined
-                        : Icons.camera),
-              ),
-            ),
           ),
         ],
       ),
@@ -100,28 +90,10 @@ class _CameraViewState extends State<CameraView> {
 
   Widget _body() {
     Widget body;
-    if (_mode == ScreenMode.liveFeed)
-      body = _liveFeedBody();
-    else
       body = _galleryBody();
     return body;
   }
 
-  Widget _liveFeedBody() {
-    if (_controller?.value?.isInitialized == false) {
-      return Container();
-    }
-    return Container(
-      color: Colors.black,
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          CameraPreview(_controller),
-          if (widget.customPaint != null) widget.customPaint,
-        ],
-      ),
-    );
-  }
 
   Widget _galleryBody() {
     return ListView(shrinkWrap: true, children: [
@@ -168,16 +140,6 @@ class _CameraViewState extends State<CameraView> {
     setState(() {});
   }
 
-  void _switchScreenMode() async {
-    if (_mode == ScreenMode.liveFeed) {
-      _mode = ScreenMode.gallery;
-      await _stopLiveFeed();
-    } else {
-      _mode = ScreenMode.liveFeed;
-      await _startLiveFeed();
-    }
-    setState(() {});
-  }
 
   Future _startLiveFeed() async {
     final camera = cameras[_cameraIndex];

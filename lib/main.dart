@@ -21,7 +21,7 @@ void main() async {
   var email = pref.getString('email');
   print(email);
   if(email != null) {
-    currentPage = HomeScreen.id;
+    currentPage = GuardScreen.id;
     runApp(CarFare());
   }
   else {
@@ -55,7 +55,7 @@ class _CarFareState extends State<CarFare>{
         backgroundColor: Color(0xFF141313),
       ),
 
-      initialRoute: GuardScreen.id, //temp
+      initialRoute: currentPage, //temp
       routes: {
         LoginScreen.id: (context) => LoginScreen(),
         HomeScreen.id: (context) => HomeScreen(),

@@ -9,6 +9,7 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants.dart';
 import '../genericWidgets.dart';
+import 'guard_home.dart';
 import 'home.dart';
 
 enum MobileVerificationState {
@@ -148,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         pref.setString('email', email);
                         showToast(
                             'LOGGED IN', Colors.lightGreenAccent, Icons.check);
-                        Navigator.pushNamed(context, HomeScreen.id);
+                        Navigator.pushNamed(context, GuardScreen.id);
                         msgTextCont.clear();
                       }
                     } on FirebaseAuthException catch (e) {
