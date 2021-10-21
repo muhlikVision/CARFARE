@@ -66,7 +66,9 @@ class _LoginScreenState extends State<LoginScreen> {
       showSpinner = true;
     });
     try {
+
       final chkAuth = await _auth.signInWithCredential(phoneAuthCredential);
+
       if (chkAuth.user != null) {
         showToast('LOGGED IN', Colors.lightGreenAccent, Icons.check);
         Navigator.pushNamed(context, HomeScreen.id);
@@ -149,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         pref.setString('email', email);
                         showToast(
                             'LOGGED IN', Colors.lightGreenAccent, Icons.check);
-                        Navigator.pushNamed(context, GuardScreen.id);
+                        Navigator.pushNamed(context, HomeScreen.id);
                         msgTextCont.clear();
                       }
                     } on FirebaseAuthException catch (e) {

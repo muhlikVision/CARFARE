@@ -52,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (user != null) {
         loggedinUser = user;
         loggedInUid = user.uid;
+        print(user.uid);
       }
     } catch (e) {
       print(e);
@@ -71,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Map<String, dynamic> data = docSnapshot.data();
 
         final tname = data['Name']['first'];
-        final lname = data['Name']['last'];//USerName
+        final lname = data['Name']['last']; //USerName
         name = '$tname $lname';
 
         setState(() {
@@ -80,8 +81,40 @@ class _HomeScreenState extends State<HomeScreen> {
         print(name);
         return name;
       }
+      else {
+        var docSnapshotTwo = await _firestore
+            .collection('Users')
+            .doc('Student')
+            .get();
+        if (docSnapshotTwo.exists) {
+          Map<String, dynamic> data = docSnapshotTwo.data();
+
+          final mail_uid = data[loggedInUid]; //USerName
+
+          if(mail_uid != null)
+            {
+              loggedInUid = mail_uid;
+              getUserInfo();
+              setState(() {
+                currentState = WAIT.DATA_FETCHED;
+              });
+            }
+          else
+            {
+              showToast('Phone Number NOT registered', Colors.redAccent, Icons.clear);
+              print('phoneAuth uid not found');
+              setState(() {
+                currentState = WAIT.DATA_FETCHED;
+              });
+              Navigator.pop(context);
+            }
+        }
+
+      }
+
     } catch (e) {
-      showToast(e, Colors.redAccent, Icons.clear);
+      print(e);
+      //showToast(e, Colors.redAccent, Icons.clear);
     }
   }
 
@@ -216,10 +249,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     if (currentState == WAIT.DATA_IN_PROCESS) {
       return ModalProgressHUD(
-          inAsyncCall: true,
+        inAsyncCall: true,
+        color: Colors.deepOrange,
+        progressIndicator: CircularProgressIndicator(
           color: Colors.deepOrange,
-          progressIndicator: CircularProgressIndicator(color: Colors.deepOrange,),
-      child: Container(),
+        ),
+        child: Container(),
       );
     } else {
       return homeScreen(context);
