@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
       final chkAuth = await _auth.signInWithCredential(phoneAuthCredential);
 
       if (chkAuth.user != null) {
-        showToast('LOGGED IN', Colors.lightGreenAccent, Icons.check);
+
         Navigator.pushNamed(context, HomeScreen.id);
         setState(() {
           showSpinner = false;
@@ -149,8 +149,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         SharedPreferences pref =
                             await SharedPreferences.getInstance();
                         pref.setString('email', email);
-                        showToast(
-                            'LOGGED IN', Colors.lightGreenAccent, Icons.check);
                         Navigator.pushNamed(context, HomeScreen.id);
                         msgTextCont.clear();
                       }

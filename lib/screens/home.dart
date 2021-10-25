@@ -18,6 +18,9 @@ import '../genericWidgets.dart';
 enum WAIT {
   DATA_IN_PROCESS,
   DATA_FETCHED,
+  VEHICLE_INFO,
+  PAYMENTS,
+  SUPPORT,
 }
 
 class HomeScreen extends StatefulWidget {
@@ -33,8 +36,13 @@ class _HomeScreenState extends State<HomeScreen> {
   WAIT currentState = WAIT.DATA_IN_PROCESS;
 
   User loggedinUser;
+  //userinfo
   String loggedInUid;
   String name;
+  List<dynamic> myVehicles;
+
+
+  String status = ''; //temp
 
   @override
   void initState() {
@@ -52,11 +60,36 @@ class _HomeScreenState extends State<HomeScreen> {
       if (user != null) {
         loggedinUser = user;
         loggedInUid = user.uid;
-        print(user.uid);
       }
     } catch (e) {
       print(e);
       showToast(e, Colors.redAccent, Icons.clear);
+    }
+  }
+
+  getVehicleInfo() async {
+    try{
+      for(int i = 0 ; i < myVehicles.length; i++)
+        {
+          var docSnapshot = await _firestore
+              .collection('Vehicles')
+              .doc(myVehicles[i])
+              .get();
+          if (docSnapshot.exists) {
+            Map<String, dynamic> data = docSnapshot.data();
+
+            final name = data['Name'];
+            final status = data['status'];
+            final type = data['type'];
+            final verification = data['verification'];
+            print('$name $status $type $verification');
+          }
+        }
+    }
+    catch(e)
+    {
+      print(e);
+      showToast('$e', Colors.redAccent, Icons.clear);
     }
   }
 
@@ -72,50 +105,71 @@ class _HomeScreenState extends State<HomeScreen> {
         Map<String, dynamic> data = docSnapshot.data();
 
         final tname = data['Name']['first'];
-        final lname = data['Name']['last']; //USerName
-        name = '$tname $lname';
+        final lname = data['Name']['last'];
+        final vehicles = data['vehicles'];
 
+        myVehicles = vehicles; //vehicles
+        name = '$tname $lname';//username
+
+        if(myVehicles.length > 0) {
+          getVehicleInfo();
+        }
         setState(() {
           currentState = WAIT.DATA_FETCHED;
+          showToast('LOGGED IN', Colors.lightGreenAccent, Icons.check);
         });
-        print(name);
+
         return name;
-      }
-      else {
-        var docSnapshotTwo = await _firestore
-            .collection('Users')
-            .doc('Student')
-            .get();
+      } else {
+        var docSnapshotTwo =
+            await _firestore.collection('Users').doc('Student').get();
         if (docSnapshotTwo.exists) {
           Map<String, dynamic> data = docSnapshotTwo.data();
 
           final mail_uid = data[loggedInUid]; //USerName
 
-          if(mail_uid != null)
-            {
-              loggedInUid = mail_uid;
-              getUserInfo();
-              setState(() {
-                currentState = WAIT.DATA_FETCHED;
-              });
-            }
-          else
-            {
-              showToast('Phone Number NOT registered', Colors.redAccent, Icons.clear);
-              print('phoneAuth uid not found');
-              setState(() {
-                currentState = WAIT.DATA_FETCHED;
-              });
-              Navigator.pop(context);
-            }
+          if (mail_uid != null) {
+            loggedInUid = mail_uid;
+            getUserInfo();
+          } else {
+            print('phoneAuth uid not found');
+            setState(() {
+              currentState = WAIT.DATA_FETCHED;
+            });
+            Navigator.pop(context);
+            showToast(
+                'Phone Number NOT registered', Colors.redAccent, Icons.clear);
+          }
         }
-
       }
-
     } catch (e) {
       print(e);
-      //showToast(e, Colors.redAccent, Icons.clear);
+      showToast('$e', Colors.redAccent, Icons.clear);
     }
+  }
+
+  vehicles(context) {
+    return WillPopScope(
+      onWillPop: () async {
+        return;
+      },
+      child: Scaffold(
+        backgroundColor: Color(0xFF141313),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              setState(() {
+                currentState = WAIT.DATA_FETCHED;
+              });
+            },
+          ),
+          title: Text('My Vehicles'),
+          elevation: 20,
+          backgroundColor: color,
+        ),
+      ),
+    );
   }
 
   homeScreen(context) {
@@ -146,13 +200,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Text('beta.v1'),
                 ),
                 ListTile(
-                  title: const Text('Account Details'),
+                  title: const Text('Vehicle Details'),
                   trailing: Icon(
-                    Icons.person,
+                    Icons.airport_shuttle,
                     color: Colors.red,
                   ),
                   focusColor: color,
                   onTap: () {
+                    setState(() {
+                      currentState = WAIT.VEHICLE_INFO;
+                      status = 'vehicle details pushed';
+                    });
                     Navigator.pop(context);
                   },
                 ),
@@ -165,6 +223,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   focusColor: color,
                   onTap: () {
                     // Update the state of the app.
+                    setState(() {
+                      status = 'payments pushed';
+                    });
                     Navigator.pop(context);
                   },
                 ),
@@ -231,7 +292,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Container(
                     color: color,
                     child: Text(
-                      'UNDER CONSTRUCTION',
+                      status,
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -256,6 +317,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Container(),
       );
+    } else if (currentState == WAIT.VEHICLE_INFO) {
+      return vehicles(context);
     } else {
       return homeScreen(context);
     }
