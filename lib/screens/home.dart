@@ -6,10 +6,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../constants.dart';
 import '../genericWidgets.dart';
 
@@ -35,13 +35,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
   WAIT currentState = WAIT.DATA_IN_PROCESS;
 
+  List<CustomTile> carsBox = [];
+
+
   User loggedinUser;
   //userinfo
   String loggedInUid;
   String name;
   List<dynamic> myVehicles;
 
-
+  //vehcile_info
+  String v_name, v_type;
+  bool v_status = false, v_verify = false;
   String status = ''; //temp
 
   @override
@@ -53,6 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
     fToast = FToast();
     fToast.init(context);
   }
+
+  // Future<void> makePayments() async {
+  //   final url = Uri.parse('');
+  // }
 
   void getCurrentUser() async {
     try {
@@ -82,7 +91,12 @@ class _HomeScreenState extends State<HomeScreen> {
             final status = data['status'];
             final type = data['type'];
             final verification = data['verification'];
-            print('$name $status $type $verification');
+            setState(() {
+              v_name = name; v_status = status; v_type = type; v_verify = verification;
+            });
+            print('$v_name \n$v_status \n$v_type \n$v_verify');
+            final carBox = CustomTile(carName: v_name,status: v_status,verify: v_verify, type: v_type, numberPlate: myVehicles[i],);
+            carsBox.add(carBox);
           }
         }
     }
@@ -148,6 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+
   vehicles(context) {
     return WillPopScope(
       onWillPop: () async {
@@ -167,6 +182,10 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text('My Vehicles'),
           elevation: 20,
           backgroundColor: color,
+        ),
+        body: ListView(
+          shrinkWrap: true,
+          children: carsBox,
         ),
       ),
     );
@@ -291,9 +310,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Center(
                   child: Container(
                     color: color,
-                    child: Text(
-                      status,
-                      style: TextStyle(color: Colors.white),
+                    child: Row(
                     ),
                   ),
                 ),

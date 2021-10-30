@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:carfare/constants.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -212,7 +213,6 @@ class InputField extends StatelessWidget {
     );
   }
 }
-
 class MessageStream extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -252,6 +252,84 @@ class MessageStream extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class CustomTile extends StatelessWidget{
+
+  final carName;
+  final type;
+  final status;
+  final verify;
+  final numberPlate;
+
+
+  const CustomTile({Key key, this.carName, this.type, this.status, this.verify, this.numberPlate}) : super(key: key);
+
+  chkStatus(status){
+    if(status == false)
+      {
+        return Icons.cancel;
+      }
+    else
+      {
+        return Icons.check;
+      }
+  }
+  chkVerify(verify){
+    if(verify == false)
+    {
+      return Icons.cancel;
+    }
+    else
+    {
+      return Icons.check;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListTile(
+        hoverColor: Colors.black54,
+        tileColor: Colors.black,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          leading: Container(
+            padding: EdgeInsets.only(right: 12.0),
+            decoration: new BoxDecoration(
+                border: new Border(
+                    right: new BorderSide(width: 1.0, color: Colors.white24))),
+            child: Icon(type == 'car'? Icons.airport_shuttle: Icons.two_wheeler, color: Colors.white),
+          ),
+          title: Text(
+            '$carName | $numberPlate',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          // subtitle: Text("Intermediate", style: TextStyle(color: Colors.white)),
+
+          subtitle: Column(
+            children: [
+              Row(
+                children: <Widget>[
+                  Icon(chkStatus(status), color: chkStatus(status) == Icons.check? Colors.greenAccent:Colors.redAccent),
+                  Text(" Active Status", style: TextStyle(color: Colors.white))
+                ],
+              ),
+              Row(
+                children: <Widget>[
+                  Icon(chkVerify(verify), color: chkVerify(verify) == Icons.check? Colors.greenAccent:Colors.redAccent),
+                  Text(" Traffic Police Verification Status", style: TextStyle(color: Colors.white))
+                ],
+              ),
+            ],
+          ),
+          trailing:
+          Icon(Icons.keyboard_arrow_right, color: Colors.black, size: 30.0)),
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:camera/camera.dart';
 import 'package:carfare/screens/guard_home.dart';
 import 'package:carfare/screens/home.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/login.dart';
 import 'package:flutter/material.dart';
@@ -15,6 +16,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   cameras = await availableCameras();
+  Stripe.publishableKey = 'pk_test_51JqFhIEBUepNSp7bp0LAkZ39xAFfL5XmyTRu8iJYhbaR7UKPGaZicExWLr6CrFwRnNVQjBya1uvWX484kMOAWhMA00heDRJ8qM';
 
   SharedPreferences pref = await SharedPreferences.getInstance();
 

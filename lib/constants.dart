@@ -73,4 +73,3 @@ showToast(String text, MaterialAccentColor color, IconData icon) {
     toastDuration: Duration(seconds: 3),
   );
 }
-
