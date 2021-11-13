@@ -47,17 +47,24 @@ class _LoginScreenState extends State<LoginScreen> {
     fToast.init(context);
   }
 
-  bool chkEmailSyntax(String email) {
+  int chkEmailSyntax(String email) {
     try {
       String temp = '@ucp.edu.pk';
+      String guard = '@ucp.guard.pk';
       int n = email.length - 11;
+      int g = email.length - 13;
       if (temp == email.substring(n)) {
-        return true;
-      } else
-        return false;
+        return 1;
+      } else if(guard == email.substring(g)) {
+        return 2;
+      }
+      else
+        {
+          return 0;
+        }
     } catch (e) {
       showToast('Invalid Email Syntax', Colors.redAccent, Icons.clear);
-      return false;
+      return 0;
     }
   }
 
@@ -66,11 +73,9 @@ class _LoginScreenState extends State<LoginScreen> {
       showSpinner = true;
     });
     try {
-
       final chkAuth = await _auth.signInWithCredential(phoneAuthCredential);
 
       if (chkAuth.user != null) {
-
         Navigator.pushNamed(context, HomeScreen.id);
         setState(() {
           showSpinner = false;
@@ -92,7 +97,9 @@ class _LoginScreenState extends State<LoginScreen> {
     return ModalProgressHUD(
       inAsyncCall: showSpinner,
       color: Colors.deepOrange,
-      progressIndicator: CircularProgressIndicator(color: Colors.deepOrange,),
+      progressIndicator: CircularProgressIndicator(
+        color: Colors.deepOrange,
+      ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
@@ -134,7 +141,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             ButtonBuilder(
                 onPress: () async {
-                  if (chkEmailSyntax(email) == true &&
+                  if (chkEmailSyntax(email) == 1 &&
                       email != null &&
                       password != null) {
                     setState(() {
@@ -161,7 +168,35 @@ class _LoginScreenState extends State<LoginScreen> {
                     setState(() {
                       showSpinner = false;
                     });
-                  } else {
+                  } else if (chkEmailSyntax(email) == 2 &&
+                      email != null &&
+                      password != null) {
+                    setState(() {
+                      showSpinner = true;
+                    });
+                    try {
+                      final user = await _auth.signInWithEmailAndPassword(
+                          email: email, password: password);
+                      if (user != null) {
+                        //storeTokenAndData(user);
+                        print(user);
+                        // SharedPreferences pref =
+                        // await SharedPreferences.getInstance();
+                        // pref.setString('email', email);
+                        Navigator.pushNamed(context, GuardScreen.id);
+                        msgTextCont.clear();
+                      }
+                    } on FirebaseAuthException catch (e) {
+                      showToast(e.message, Colors.redAccent, Icons.clear);
+                      setState(() {
+                        showSpinner = false;
+                      });
+                    }
+                    setState(() {
+                      showSpinner = false;
+                    });
+                  }
+                  else {
                     showToast(
                         'Invalid Email Syntax', Colors.redAccent, Icons.clear);
                   }
@@ -241,7 +276,9 @@ class _LoginScreenState extends State<LoginScreen> {
     return ModalProgressHUD(
       inAsyncCall: showSpinner,
       color: Colors.deepOrange,
-      progressIndicator: CircularProgressIndicator(color: Colors.deepOrange,),
+      progressIndicator: CircularProgressIndicator(
+        color: Colors.deepOrange,
+      ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
@@ -251,13 +288,18 @@ class _LoginScreenState extends State<LoginScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                RoundButtonBuilder(splashcolor: Colors.redAccent, sizeConstraints: 45, customButtonIcon: Icons.arrow_back, onPress: (){
-                  setState(() {
-                    currentState =
-                        MobileVerificationState.SHOW_MOBILE_FORM_STATE;
-                  });
-                  otpController.clear();
-                },),
+                RoundButtonBuilder(
+                  splashcolor: Colors.redAccent,
+                  sizeConstraints: 45,
+                  customButtonIcon: Icons.arrow_back,
+                  onPress: () {
+                    setState(() {
+                      currentState =
+                          MobileVerificationState.SHOW_MOBILE_FORM_STATE;
+                    });
+                    otpController.clear();
+                  },
+                ),
               ],
             ),
             Flexible(

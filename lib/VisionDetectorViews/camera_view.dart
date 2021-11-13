@@ -1,11 +1,17 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:carfare/screens/home.dart';
+import 'package:carfare/screens/login.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../constants.dart';
 import '../main.dart';
 
 enum ScreenMode { gallery }
@@ -15,6 +21,7 @@ class CameraView extends StatefulWidget {
       {Key key,
       @required this.title,
       @required this.customPaint,
+      @required this.ic,
       this.onImage,
       this.initialDirection = CameraLensDirection.back})
       : super(key: key);
@@ -23,17 +30,22 @@ class CameraView extends StatefulWidget {
   final CustomPaint customPaint;
   final Function(InputImage inputImage) onImage;
   final CameraLensDirection initialDirection;
+  final IconButton ic;
 
   @override
   _CameraViewState createState() => _CameraViewState();
 }
 
 class _CameraViewState extends State<CameraView> {
+  final _auth = FirebaseAuth.instance; //auth data
+  final _firestore = FirebaseFirestore.instance; //send and get data
   ScreenMode _mode = ScreenMode.gallery;
   CameraController _controller;
   File _image;
   ImagePicker _imagePicker;
   int _cameraIndex = 0;
+
+
 
   @override
   void initState() {
@@ -64,6 +76,7 @@ class _CameraViewState extends State<CameraView> {
             padding: EdgeInsets.only(right: 20.0),
           ),
         ],
+        leading: widget.ic,
       ),
       body: _body(),
       floatingActionButton: _floatingActionButton(),
@@ -127,6 +140,21 @@ class _CameraViewState extends State<CameraView> {
           onPressed: () => _getImage(ImageSource.camera),
         ),
       ),
+      // Padding(
+      //   padding: EdgeInsets.symmetric(horizontal: 16),
+      //   child: ElevatedButton(
+      //     child: Text('EXIT TESTING SCREEN'),
+      //     onPressed: () async {
+      //       // SharedPreferences pref =
+      //       //     await SharedPreferences.getInstance();
+      //       // pref.remove('email');
+      //       showToast(
+      //           'LOGGED OUT', Colors.lightBlueAccent, Icons.check);
+      //       _auth.signOut();
+      //       Navigator.popAndPushNamed(context, LoginScreen.id);
+      //     },
+      //   ),
+      // ),
     ]);
   }
 

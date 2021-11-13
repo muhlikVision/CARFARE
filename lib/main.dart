@@ -21,6 +21,7 @@ void main() async {
   SharedPreferences pref = await SharedPreferences.getInstance();
 
   var email = pref.getString('email');
+
   print(email);
   if(email != null) {
     currentPage = HomeScreen.id;

@@ -23,6 +23,11 @@ String num = '';
 int x = 0;
 List<String> numberPlate = [];
 
+enum STATE {
+  MAIN,
+  SCAN,
+  CURRENT_STATUS,
+}
 
 class GuardScreen extends StatefulWidget {
   static const String id = 'guard_screen';
@@ -39,6 +44,10 @@ class _TextDetectorViewState extends State<GuardScreen> {
 
   String sendToFb;
 
+  String vehicle_status = 'entry';
+
+  STATE currentState = STATE.MAIN;
+
   @override
   void dispose() async {
     super.dispose();
@@ -54,15 +63,93 @@ class _TextDetectorViewState extends State<GuardScreen> {
     fToast.init(context);
   }
 
-  @override
-  Widget build(BuildContext context) {
+  main(context) {
+    return WillPopScope(
+      onWillPop: () {
+        return;
+      },
+      child: Scaffold(
+          backgroundColor: Color(0xFF141313),
+          appBar: AppBar(
+            title: Text('GUARD PANEL'),
+            elevation: 20,
+            backgroundColor: color,
+            automaticallyImplyLeading: false,
+          ),
+          resizeToAvoidBottomInset: true,
+          body: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                    ButtonBuilder(
+                        onPress: () {
+                          setState(() {
+                            currentState = STATE.SCAN;
+                            vehicle_status = 'entry';
+                          });
+                          showToast('$vehicle_status', Colors.blueAccent, Icons.check);
+                        }, color: Colors.green, text: 'ENTRY'),
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                    ButtonBuilder(
+                        onPress: () {
+                          setState(() {
+                            currentState = STATE.SCAN;
+                            vehicle_status = 'exit';
+                          });
+                          showToast('$vehicle_status', Colors.blueAccent, Icons.check);
+                        }, color: Colors.red, text: 'EXIT'),
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                    ButtonBuilder(
+                        onPress: () {
+                          setState(() {
+
+                          });
+                        }, color: Colors.blue, text: 'CHECK PARKING STATUS'),
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                  ]))),
+    );
+  }
+
+  scan(context) {
     return CameraView(
-      title: 'CARFARE Testing Phase',
+      title: 'SCAN NUMBER PLATE',
       customPaint: customPaint,
       onImage: (inputImage) async {
         await processImage(inputImage);
       },
+      ic: IconButton(
+        icon: Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          setState(() {
+            currentState = STATE.MAIN;
+          });
+        },
+      ),
     );
+  }
+
+  liveStatus(context) {}
+
+  @override
+  Widget build(BuildContext context) {
+    if (currentState == STATE.MAIN) {
+      return main(context);
+    } else if (currentState == STATE.SCAN) {
+      return scan(context);
+    } else {
+      return liveStatus(context);
+    }
   }
 
   void disPlate(List<String> n) {
@@ -73,9 +160,7 @@ class _TextDetectorViewState extends State<GuardScreen> {
       for (int i = 0; i < n.length; i++) {
         for (int j = 0; j < n[i].length; j++) {
           //print(j);
-          temp = n[i]
-              .substring(j, j + 1)
-              .codeUnits;
+          temp = n[i].substring(j, j + 1).codeUnits;
           //print('ASCII: $temp of ${n[i].substring(j, j + 1)}');
           if (n[i].substring(j, j + 1) == '-' ||
               n[i].substring(j, j + 1) == ' ' ||
@@ -95,8 +180,7 @@ class _TextDetectorViewState extends State<GuardScreen> {
                 if (n[i].substring(l, l + 1) == '-') {
                   tempS = n[i].split('-');
                   l = n[i].length;
-                }
-                else if (n[i].substring(l, l + 1) == ' ') {
+                } else if (n[i].substring(l, l + 1) == ' ') {
                   tempS = n[i].split(' ');
                   l = n[i].length;
                 }
@@ -127,9 +211,7 @@ class _TextDetectorViewState extends State<GuardScreen> {
           }
         }
       }
-    }
-    catch(e)
-    {
+    } catch (e) {
       print(e);
       showToast('$e', Colors.redAccent, Icons.cancel);
     }
@@ -137,7 +219,7 @@ class _TextDetectorViewState extends State<GuardScreen> {
     for (int i = 0; i < numberPlate.length; i++) {
       for (int j = 0; j < numberPlate[i].length; j++) {
         temp = numberPlate[i].substring(j, j + 1).codeUnits;
-        if(temp[0] >= 48 && temp[0] <= 57){
+        if (temp[0] >= 48 && temp[0] <= 57) {
           if (numberPlate[i].codeUnits.length > 2) {
             String temp = numberPlate[i];
             numberPlate.remove(numberPlate[i]);
@@ -148,17 +230,16 @@ class _TextDetectorViewState extends State<GuardScreen> {
     }
   }
 
-  void verify(List<String> n)async{
+  void verify(List<String> n) async {
     sendToFb = n.join('-');
     getUserInfo();
     print(sendToFb);
   }
+
   getUserInfo() async {
     try {
-      var docSnapshot = await _firestore
-          .collection('Vehicles')
-          .doc(sendToFb)
-          .get();
+      var docSnapshot =
+          await _firestore.collection('Vehicles').doc(sendToFb).get();
       if (docSnapshot.exists) {
         Map<String, dynamic> data = docSnapshot.data();
 
@@ -166,16 +247,16 @@ class _TextDetectorViewState extends State<GuardScreen> {
         // setState(() {
         //   currentState = WAIT.DATA_FETCHED;
         // });
-        showToast('$carName has been Verified', Colors.greenAccent, Icons.check);
+        showToast(
+            '$carName has been Verified', Colors.greenAccent, Icons.check);
+      } else {
+        showToast('No record found', Colors.redAccent, Icons.clear);
       }
-      else
-        {
-          showToast('No record found', Colors.redAccent, Icons.clear);
-        }
     } catch (e) {
       showToast(e, Colors.redAccent, Icons.clear);
     }
   }
+
   Future<void> processImage(InputImage inputImage) async {
     if (isBusy) return;
     isBusy = true;

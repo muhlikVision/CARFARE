@@ -162,7 +162,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   vehicles(context) {
     return WillPopScope(
       onWillPop: () async {

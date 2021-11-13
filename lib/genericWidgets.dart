@@ -294,7 +294,7 @@ class CustomTile extends StatelessWidget{
       padding: const EdgeInsets.all(8.0),
       child: ListTile(
         hoverColor: Colors.black54,
-        tileColor: Colors.black,
+        tileColor: Colors.blueAccent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25.0),
           ),
@@ -329,7 +329,7 @@ class CustomTile extends StatelessWidget{
             ],
           ),
           trailing:
-          Icon(Icons.keyboard_arrow_right, color: Colors.black, size: 30.0)),
+          Icon(Icons.keyboard_arrow_right, color: Colors.blueAccent, size: 30.0)),
     );
   }
 }
