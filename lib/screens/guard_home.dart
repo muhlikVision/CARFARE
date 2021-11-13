@@ -35,6 +35,9 @@ class GuardScreen extends StatefulWidget {
   _TextDetectorViewState createState() => _TextDetectorViewState();
 }
 
+//TODO:...............................................
+//TODO: ADD GUEST TOKEN AND CAR NUMBER MANUAL CHECKER
+
 class _TextDetectorViewState extends State<GuardScreen> {
   final _auth = FirebaseAuth.instance; //auth data
   final _firestore = FirebaseFirestore.instance;
@@ -114,6 +117,15 @@ class _TextDetectorViewState extends State<GuardScreen> {
 
                           });
                         }, color: Colors.blue, text: 'CHECK PARKING STATUS'),
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                    ButtonBuilder(
+                        onPress: () {
+                          setState(() {
+
+                          });
+                        }, color: Colors.blue, text: 'REGISTER A GUEST'),
                     SizedBox(
                       height: 24.0,
                     ),
