@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:camera/camera.dart';
+import 'package:carfare/screens/guard_home.dart';
 import 'package:carfare/screens/home.dart';
 import 'package:carfare/screens/login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,6 +13,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants.dart';
+import '../genericWidgets.dart';
 import '../main.dart';
 
 enum ScreenMode { gallery }
@@ -44,8 +46,8 @@ class _CameraViewState extends State<CameraView> {
   File _image;
   ImagePicker _imagePicker;
   int _cameraIndex = 0;
-
-
+  //temp
+  String numpy;
 
   @override
   void initState() {
@@ -64,6 +66,53 @@ class _CameraViewState extends State<CameraView> {
   void dispose() {
     _stopLiveFeed();
     super.dispose();
+  }
+
+  void custom(){
+    // showAnimatedDialog(
+    //   context: context,
+    //   barrierDismissible: true,
+    //   builder: (BuildContext context) {
+    //     return ClassicGeneralDialogWidget(
+    //       titleText: 'Title',
+    //       contentText: 'content',
+    //       onPositiveClick: () {
+    //         Navigator.of(context).pop();
+    //       },
+    //       onNegativeClick: () {
+    //         Navigator.of(context).pop();
+    //       },
+    //     );
+    //   },
+    //   animationType: DialogTransitionType.size,
+    //   curve: Curves.fastOutSlowIn,
+    //   duration: Duration(seconds: 1),
+    // );
+  }
+  void _openCustomDialog() {
+    showGeneralDialog(
+        barrierColor: Color(0xFF141313).withOpacity(0.5),
+        transitionBuilder: (context, a1, a2, widget) {
+          return Transform.scale(
+            scale: a1.value,
+            child: Opacity(
+              opacity: a1.value,
+              child: Center(
+                child: AlertDialog(
+                  shape: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16.0)),
+                  title: Image.asset('images/tick.gif',height: 125.0, width: 125.0,),
+                  content: Text('Verified'),
+                ),
+              ),
+            ),
+          );
+        },
+        transitionDuration: Duration(milliseconds: 100),
+        barrierDismissible: true,
+        barrierLabel: '',
+        context: context,
+        pageBuilder: (context, animation1, animation2) {});
   }
 
   @override
@@ -103,10 +152,9 @@ class _CameraViewState extends State<CameraView> {
 
   Widget _body() {
     Widget body;
-      body = _galleryBody();
+    body = _galleryBody();
     return body;
   }
-
 
   Widget _galleryBody() {
     return ListView(shrinkWrap: true, children: [
@@ -126,6 +174,9 @@ class _CameraViewState extends State<CameraView> {
               Icons.image,
               size: 200,
             ),
+      SizedBox(
+        height: 48.0,
+      ),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: ElevatedButton(
@@ -133,11 +184,50 @@ class _CameraViewState extends State<CameraView> {
           onPressed: () => _getImage(ImageSource.gallery),
         ),
       ),
+      SizedBox(
+        height: 48.0,
+      ),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: 16),
         child: ElevatedButton(
           child: Text('Take a picture'),
           onPressed: () => _getImage(ImageSource.camera),
+        ),
+      ),
+      SizedBox(
+        height: 38.0,
+      ),
+      Center(
+          child: Text(
+        'Visual NOT working? Check Manually\nExample: ABC-00-1234',
+        style: TextStyle(color: Colors.white),
+      )),
+      SizedBox(
+        height: 38.0,
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: InputField(
+          onChange: (value) {
+            numpy = value;
+          },
+          bcolor: Colors.blue,
+          text: 'Enter Number Plate',
+          type: TextInputType.emailAddress,
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: ButtonBuilder(
+          onPress: () async {
+            numpy.toUpperCase();
+            print(numpy);
+            TextDetectorViewState().getUserInfo(numpy.toUpperCase());
+            //checkSyntax();
+            _openCustomDialog();
+          },
+          color: Colors.green,
+          text: 'CHECK',
         ),
       ),
       // Padding(
@@ -167,7 +257,6 @@ class _CameraViewState extends State<CameraView> {
     }
     setState(() {});
   }
-
 
   Future _startLiveFeed() async {
     final camera = cameras[_cameraIndex];

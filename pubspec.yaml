@@ -27,6 +27,7 @@ dependencies:
   flutter_stripe: any
   http: any
   pay: ^1.0.6
+  flutter_animated_dialog: any
 
 dev_dependencies:
   flutter_test:

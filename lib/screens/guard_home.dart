@@ -22,6 +22,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 String num = '';
 int x = 0;
 List<String> numberPlate = [];
+String vehicle_status = 'entry';
 
 enum STATE {
   MAIN,
@@ -31,14 +32,15 @@ enum STATE {
 
 class GuardScreen extends StatefulWidget {
   static const String id = 'guard_screen';
+
   @override
-  _TextDetectorViewState createState() => _TextDetectorViewState();
+  TextDetectorViewState createState() => TextDetectorViewState();
 }
 
 //TODO:...............................................
-//TODO: ADD GUEST TOKEN AND CAR NUMBER MANUAL CHECKER
+//TODO: ADD GUEST TOKEN AND Manual syntax checker AND Floor counter
 
-class _TextDetectorViewState extends State<GuardScreen> {
+class TextDetectorViewState extends State<GuardScreen> {
   final _auth = FirebaseAuth.instance; //auth data
   final _firestore = FirebaseFirestore.instance;
   TextDetector textDetector = GoogleMlKit.vision.textDetector();
@@ -47,9 +49,9 @@ class _TextDetectorViewState extends State<GuardScreen> {
 
   String sendToFb;
 
-  String vehicle_status = 'entry';
 
   STATE currentState = STATE.MAIN;
+
 
   @override
   void dispose() async {
@@ -164,6 +166,12 @@ class _TextDetectorViewState extends State<GuardScreen> {
     }
   }
 
+  String getTime ()
+  {
+    String now = DateTime.now().toString();
+    return now;
+  }
+
   void disPlate(List<String> n) {
     //LEB 15,1234
 
@@ -244,11 +252,11 @@ class _TextDetectorViewState extends State<GuardScreen> {
 
   void verify(List<String> n) async {
     sendToFb = n.join('-');
-    getUserInfo();
-    print(sendToFb);
+    getUserInfo(sendToFb);
+    //print(sendToFb);
   }
 
-  getUserInfo() async {
+  getUserInfo(String sendToFb) async {
     try {
       var docSnapshot =
           await _firestore.collection('Vehicles').doc(sendToFb).get();
@@ -259,6 +267,14 @@ class _TextDetectorViewState extends State<GuardScreen> {
         // setState(() {
         //   currentState = WAIT.DATA_FETCHED;
         // });
+
+        _firestore.collection('TrafficMonitor').doc() // <-- Document ID
+            .set({
+          'number_plate': sendToFb,
+          'type': vehicle_status,
+          'time_date': getTime(),
+        });
+
         showToast(
             '$carName has been Verified', Colors.greenAccent, Icons.check);
       } else {

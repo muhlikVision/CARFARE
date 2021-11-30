@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
 
+
 List<CameraDescription> cameras = [];
 String currentPage = '';
 
