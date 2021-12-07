@@ -17,7 +17,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   cameras = await availableCameras();
-  Stripe.publishableKey = 'pk_test_51JqFhIEBUepNSp7bp0LAkZ39xAFfL5XmyTRu8iJYhbaR7UKPGaZicExWLr6CrFwRnNVQjBya1uvWX484kMOAWhMA00heDRJ8qM';
+  //Stripe.publishableKey = 'pk_test_51JqFhIEBUepNSp7bp0LAkZ39xAFfL5XmyTRu8iJYhbaR7UKPGaZicExWLr6CrFwRnNVQjBya1uvWX484kMOAWhMA00heDRJ8qM';
 
   SharedPreferences pref = await SharedPreferences.getInstance();
 

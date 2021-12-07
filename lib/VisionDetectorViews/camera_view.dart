@@ -6,6 +6,7 @@ import 'package:carfare/screens/home.dart';
 import 'package:carfare/screens/login.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
@@ -46,6 +47,7 @@ class _CameraViewState extends State<CameraView> {
   File _image;
   ImagePicker _imagePicker;
   int _cameraIndex = 0;
+  final msgTextCont = TextEditingController();
   //temp
   String numpy;
 
@@ -68,27 +70,109 @@ class _CameraViewState extends State<CameraView> {
     super.dispose();
   }
 
-  void custom(){
-    // showAnimatedDialog(
-    //   context: context,
-    //   barrierDismissible: true,
-    //   builder: (BuildContext context) {
-    //     return ClassicGeneralDialogWidget(
-    //       titleText: 'Title',
-    //       contentText: 'content',
-    //       onPositiveClick: () {
-    //         Navigator.of(context).pop();
-    //       },
-    //       onNegativeClick: () {
-    //         Navigator.of(context).pop();
-    //       },
-    //     );
-    //   },
-    //   animationType: DialogTransitionType.size,
-    //   curve: Curves.fastOutSlowIn,
-    //   duration: Duration(seconds: 1),
-    // );
+  Future<void> _showMyDialog(String text, String anim) async {
+    return showDialog<void>(
+      context: context,
+
+      //barrierColor:  Colors.deepOrange.withOpacity(0.5),// user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black,
+          shape: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.0)),
+          title: Image.asset('images/$anim.gif',height: 100.0, width: 100.0,),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Center(child: Text('$text')),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
+
+  getUserInfo(String sendToFb) async {
+    try {
+      var docSnapshot =
+      await _firestore.collection('Vehicles').doc(sendToFb).get();
+      if (docSnapshot.exists) {
+        Map<String, dynamic> data = docSnapshot.data();
+
+        final carName = data['Name'];
+        // setState(() {
+        //   currentState = WAIT.DATA_FETCHED;
+        // });
+
+        _firestore.collection('TrafficMonitor').doc() // <-- Document ID
+            .set({
+          'number_plate': sendToFb,
+          'type': vehicle_status,
+          'time_date': TextDetectorViewState().getTime(),
+        });
+
+        _showMyDialog('$carName has been Verified','tick');
+        //showToast('$carName has been Verified', Colors.greenAccent, Icons.check);
+      } else {
+        //showToast('No record found', Colors.redAccent, Icons.clear);
+
+        _showMyDialog('NO RECORD FOUND','cross');
+      }
+    } catch (e) {
+      showToast('$e', Colors.redAccent, Icons.clear);
+    }
+  }
+
+
+  bool chkNumpySyntax(String n){
+
+    bool flag = false;
+    if (n[2] == '-' || n[3] == '-'){
+      flag = true;
+      if(n[3] =='0' || n[3] =='1' ||n[3] =='2'){
+        flag = true;
+        if(n[3+1] == '0' ||n[3+1] == '1' ||n[3+1] == '2' ||n[3+1] == '3' ||n[3+1] == '4' ||n[3+1] == '5' ||n[3+1] == '6' ||n[3+1] == '7' ||n[3+1] == '8' ||n[3+1] == '9'){
+          flag = true;
+          if(n[3+2] != '-'){flag = false;}
+        }
+        else{flag = false;}
+      }
+      else if(n[4] =='0' || n[4] =='1' ||n[4] =='2'){
+        //print(1);
+        flag = true;
+        if(n[3+1] == '0' ||n[3+1] == '1' ||n[4+1] == '2' ||n[4+1] == '3' ||n[4+1] == '4' ||n[4+1] == '5' ||n[4+1] == '6' ||n[4+1] == '7' ||n[4+1] == '8' ||n[4+1] == '9'){
+          flag = true;
+          if(n[4+2] != '-'){flag = false;}
+          //print(2);
+        }
+        else{flag = false;}
+      }
+      else
+      {
+        // print(3);
+        flag = false;
+      }
+    }
+    else{
+      //print(4);
+      flag = false;
+    }
+
+    int s = n.length-1;
+
+    return flag;
+
+  }
+
   void _openCustomDialog() {
     showGeneralDialog(
         barrierColor: Color(0xFF141313).withOpacity(0.5),
@@ -178,22 +262,42 @@ class _CameraViewState extends State<CameraView> {
         height: 48.0,
       ),
       Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        child: ElevatedButton(
-          child: Text('From Gallery'),
-          onPressed: () => _getImage(ImageSource.gallery),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: ButtonBuilder(
+          onPress: () {
+            _getImage(ImageSource.gallery);
+          },
+          color: Colors.blue,
+          text: 'From Gallery',
         ),
       ),
-      SizedBox(
-        height: 48.0,
-      ),
+      // Padding(
+      //   padding: EdgeInsets.symmetric(horizontal: 16),
+      //   child: ElevatedButton(
+      //     child: Text('From Gallery'),
+      //     onPressed: () => _getImage(ImageSource.gallery),
+      //   ),
+      // ),
+      // SizedBox(
+      //   height: 48.0,
+      // ),
       Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16),
-        child: ElevatedButton(
-          child: Text('Take a picture'),
-          onPressed: () => _getImage(ImageSource.camera),
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        child: ButtonBuilder(
+          onPress: () {
+            _getImage(ImageSource.camera);
+          },
+          color: Colors.blue,
+          text: 'Take a picture',
         ),
       ),
+      // Padding(
+      //   padding: EdgeInsets.symmetric(horizontal: 16),
+      //   child: ElevatedButton(
+      //     child: Text('Take a picture'),
+      //     onPressed: () => _getImage(ImageSource.camera),
+      //   ),
+      // ),
       SizedBox(
         height: 38.0,
       ),
@@ -214,17 +318,27 @@ class _CameraViewState extends State<CameraView> {
           bcolor: Colors.blue,
           text: 'Enter Number Plate',
           type: TextInputType.emailAddress,
+          tec: msgTextCont,
         ),
       ),
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 18),
         child: ButtonBuilder(
           onPress: () async {
+
             numpy.toUpperCase();
             print(numpy);
-            TextDetectorViewState().getUserInfo(numpy.toUpperCase());
-            //checkSyntax();
-            _openCustomDialog();
+            if(chkNumpySyntax(numpy) == true) {
+
+              getUserInfo(numpy.toUpperCase());
+              //checkSyntax();
+              //_showMyDialog('VERIFIED');
+            }
+            else
+              {
+                showToast('Invalid Number Plate Syntax', Colors.redAccent, Icons.clear);
+              }
+            msgTextCont.clear();
           },
           color: Colors.green,
           text: 'CHECK',

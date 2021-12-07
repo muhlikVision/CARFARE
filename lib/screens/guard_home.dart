@@ -27,6 +27,7 @@ String vehicle_status = 'entry';
 enum STATE {
   MAIN,
   SCAN,
+  TOKEN,
   CURRENT_STATUS,
 }
 
@@ -66,6 +67,36 @@ class TextDetectorViewState extends State<GuardScreen> {
 
     fToast = FToast();
     fToast.init(context);
+  }
+
+  Future<void> showMyDialog(String text,  String anim) async {
+    return showDialog (
+      context: context,
+      //barrierColor:  Colors.deepOrange.withOpacity(0.5),// user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black,
+          shape: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.0)),
+          title: Image.asset('images/$anim.gif',height: 100.0, width: 100.0,),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Center(child: Text('$text')),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   main(context) {
@@ -125,7 +156,7 @@ class TextDetectorViewState extends State<GuardScreen> {
                     ButtonBuilder(
                         onPress: () {
                           setState(() {
-
+                            currentState = STATE.TOKEN;
                           });
                         }, color: Colors.blue, text: 'REGISTER A GUEST'),
                     SizedBox(
@@ -134,7 +165,158 @@ class TextDetectorViewState extends State<GuardScreen> {
                   ]))),
     );
   }
+  token(context){
+    return WillPopScope(
+      onWillPop: () {
+        return;
+      },
+      child: Scaffold(
+          backgroundColor: Color(0xFF141313),
+          appBar: AppBar(
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back, color: Colors.white),
+              onPressed: () {
+                setState(() {
+                  currentState = STATE.MAIN;
+                });
+              },
+            ),
+            title: Text('REGISTER A GUEST TOKEN'),
+            elevation: 20,
+            backgroundColor: color,
+            automaticallyImplyLeading: false,
+          ),
+          resizeToAvoidBottomInset: true,
+          body: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                    // Center(
+                    //   child: Text(
+                    //     'Please Enter Right Credentials in all fields',
+                    //     style: TextStyle(color: Colors.white, fontSize: 18, fontStyle: FontStyle.normal),
+                    //   ),
+                    // ),
+                    // SizedBox(
+                    //   height: 24.0,
+                    // ),
+                    Center(
+                      child: Text(
+                        "Guest's Full Name: *",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 15.0,
+                    ),
+                    InputField(
+                      onChange: (value) {
 
+                      },
+                      bcolor: Colors.blue,
+                      text: 'Name here',
+                      type: TextInputType.name,
+                    ),
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                    Center(
+                      child: Text(
+                        "Car's Number Plate with accurate Syntax: *",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 15.0,
+                    ),
+                    InputField(
+                      onChange: (value) {
+
+                      },
+                      bcolor: Colors.blue,
+                      text: 'ABC-XX-XXXX',
+                      type: TextInputType.name,
+                    ),
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                    Center(
+                      child: Text(
+                        "Guest's CellPhone: *",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 15.0,
+                    ),
+                    InputField(
+                      onChange: (value) {
+
+                      },
+                      bcolor: Colors.blue,
+                      text: '+92-XXX-XXXXXXX',
+                      type: TextInputType.phone,
+                    ),
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                    Center(
+                      child: Text(
+                        "Payment Amount (OPTIONAL)",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 15.0,
+                    ),
+                    InputField(
+                      onChange: (value) {
+
+                      },
+                      bcolor: Colors.green,
+                      text: '0.0',
+                      type: TextInputType.number,
+                    ),
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                    Center(
+                      child: Text(
+                        "Purpose of visit: *",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 15.0,
+                    ),
+                    InputField(
+                      onChange: (value) {
+
+                      },
+                      bcolor: Colors.blue,
+                      text: 'faculty name',
+                      type: TextInputType.text,
+                    ),
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                    ButtonBuilder(
+                        onPress: () {
+                          setState(() {
+
+                          });
+                        }, color: Colors.green, text: 'SAVE INFO'),
+                    SizedBox(
+                      height: 24.0,
+                    ),
+                  ]))),
+    );
+  }
   scan(context) {
     return CameraView(
       title: 'SCAN NUMBER PLATE',
@@ -161,6 +343,8 @@ class TextDetectorViewState extends State<GuardScreen> {
       return main(context);
     } else if (currentState == STATE.SCAN) {
       return scan(context);
+    } else if (currentState == STATE.TOKEN) {
+      return token(context);
     } else {
       return liveStatus(context);
     }
@@ -233,7 +417,7 @@ class TextDetectorViewState extends State<GuardScreen> {
       }
     } catch (e) {
       print(e);
-      showToast('$e', Colors.redAccent, Icons.cancel);
+      showToast('CANT READ PROPERLY, PLEASE USE MANUAL CHECKER', Colors.redAccent, Icons.cancel);
     }
     // works for [LEC, 3378, 11]
     for (int i = 0; i < numberPlate.length; i++) {
@@ -275,15 +459,18 @@ class TextDetectorViewState extends State<GuardScreen> {
           'time_date': getTime(),
         });
 
-        showToast(
-            '$carName has been Verified', Colors.greenAccent, Icons.check);
+          showMyDialog('$carName has been Verified', 'tick');
+        //showToast('$carName has been Verified', Colors.greenAccent, Icons.check);
       } else {
-        showToast('No record found', Colors.redAccent, Icons.clear);
+        //showToast('No record found', Colors.redAccent, Icons.clear);
+
+        showMyDialog('NO RECORD FOUND','cross');
       }
     } catch (e) {
-      showToast(e, Colors.redAccent, Icons.clear);
+      showToast('$e', Colors.redAccent, Icons.clear);
     }
   }
+
 
   Future<void> processImage(InputImage inputImage) async {
     if (isBusy) return;
