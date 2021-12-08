@@ -7,6 +7,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/painting.dart';
+import 'screens/guard_home.dart';
+
 
 final _firestore = FirebaseFirestore.instance; //send and get data
 
@@ -28,7 +30,7 @@ class RoundButtonBuilder extends StatelessWidget {
     return RawMaterialButton(
       onPressed: onPress,
       shape: CircleBorder(),
-      fillColor: Colors.deepOrange,
+      fillColor: Colors.grey,
       elevation: 20.0,
       constraints: BoxConstraints.tightFor(
         width: sizeConstraints,
@@ -328,6 +330,94 @@ class CustomTile extends StatelessWidget{
               ),
             ],
           ),
+          trailing:
+          Icon(Icons.keyboard_arrow_right, color: Colors.blueAccent, size: 30.0)),
+    );
+  }
+}
+
+class CustomFloorTile extends StatelessWidget{
+
+  final floorName;
+  final count;
+  final Function callBackState;
+  const CustomFloorTile({Key key, this.count, this.floorName, this.callBackState}) : super(key: key);
+
+
+  @override
+  Widget build(BuildContext context) {
+
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListTile(
+          hoverColor: Colors.black54,
+          tileColor: Colors.white30,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          // leading: Container(
+          //   padding: EdgeInsets.only(right: 12.0),
+          //   decoration: new BoxDecoration(
+          //       border: new Border(
+          //           right: new BorderSide(width: 1.0, color: Colors.white24))),
+          //   child: Icon(floorName == 'car'? Icons.airport_shuttle: Icons.two_wheeler, color: Colors.white),
+          // ),
+          title: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("$floorName", style: TextStyle(color: Colors.white)),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  RoundButtonBuilder(splashcolor: Colors.red, sizeConstraints: 40, customButtonIcon: Icons.remove, onPress: (){
+                    callBackState(true);
+                  }),
+                  Text(
+                    ' $count ',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                  RoundButtonBuilder(splashcolor: Colors.greenAccent, sizeConstraints: 40, customButtonIcon: Icons.add, onPress: (){
+
+                  }),
+                ],
+              ),
+
+            ],
+          ),
+          // subtitle: Row(
+          //   mainAxisAlignment: MainAxisAlignment.center,
+          //   crossAxisAlignment: CrossAxisAlignment.center,
+          //   children: [
+          //     Text("Intermediate", style: TextStyle(color: Colors.white)),
+          //   ],
+          // ),
+
+          // subtitle: Column(
+          //   mainAxisAlignment: MainAxisAlignment.center,
+          //   crossAxisAlignment: CrossAxisAlignment.stretch,
+          //   children: [
+          //     Center(
+          //       child: Row(
+          //         mainAxisAlignment: MainAxisAlignment.center,
+          //         crossAxisAlignment: CrossAxisAlignment.center,
+          //         children: [
+          //           Text("$floorName", style: TextStyle(color: Colors.white)),
+          //         ],
+          //       ),
+          //     ),
+          //
+          //   ],
+          // ),
           trailing:
           Icon(Icons.keyboard_arrow_right, color: Colors.blueAccent, size: 30.0)),
     );
