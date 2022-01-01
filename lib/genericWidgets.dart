@@ -380,14 +380,15 @@ class CustomFloorTile extends StatelessWidget{
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   RoundButtonBuilder(splashcolor: Colors.red, sizeConstraints: 40, customButtonIcon: Icons.remove, onPress: (){
-                    callBackState(true);
+                    callBackState(true, floorName, count - 1);
+                    //print('$floorName $count');
                   }),
                   Text(
                     ' $count ',
                     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                   RoundButtonBuilder(splashcolor: Colors.greenAccent, sizeConstraints: 40, customButtonIcon: Icons.add, onPress: (){
-
+                    callBackState(true, floorName, count + 1);
                   }),
                 ],
               ),
@@ -418,8 +419,7 @@ class CustomFloorTile extends StatelessWidget{
           //
           //   ],
           // ),
-          trailing:
-          Icon(Icons.keyboard_arrow_right, color: Colors.blueAccent, size: 30.0)),
+         ),
     );
   }
 }

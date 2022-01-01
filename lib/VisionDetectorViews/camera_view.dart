@@ -326,19 +326,21 @@ class _CameraViewState extends State<CameraView> {
         child: ButtonBuilder(
           onPress: () async {
 
-            numpy.toUpperCase();
-            print(numpy);
-            if(chkNumpySyntax(numpy) == true) {
 
-              getUserInfo(numpy.toUpperCase());
-              //checkSyntax();
-              //_showMyDialog('VERIFIED');
+            print(numpy);
+            if(numpy != '' && numpy != null) {
+              if (chkNumpySyntax(numpy) == true) {
+                getUserInfo(numpy.toUpperCase());
+                //checkSyntax();
+                //_showMyDialog('VERIFIED');
+              }
             }
             else
               {
                 showToast('Invalid Number Plate Syntax', Colors.redAccent, Icons.clear);
               }
             msgTextCont.clear();
+            numpy = null;
           },
           color: Colors.green,
           text: 'CHECK',

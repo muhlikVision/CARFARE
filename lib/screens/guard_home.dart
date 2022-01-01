@@ -32,6 +32,7 @@ enum STATE {
   SCAN,
   TOKEN,
   CURRENT_STATUS,
+  WAIT,
 }
 
 class GuardScreen extends StatefulWidget {
@@ -42,7 +43,7 @@ class GuardScreen extends StatefulWidget {
 }
 
 //TODO:...............................................
-//TODO: ADD GUEST TOKEN AND Manual syntax checker AND Floor counter
+//TODO: ADD GUEST TOKEN AND reservation count update
 
 class TextDetectorViewState extends State<GuardScreen> {
   final _auth = FirebaseAuth.instance; //auth data
@@ -51,11 +52,18 @@ class TextDetectorViewState extends State<GuardScreen> {
   bool isBusy = false;
   CustomPaint customPaint;
 
+  final nameCont = TextEditingController();
+  final phCont = TextEditingController();
+  final payCont = TextEditingController();
+  final facCont = TextEditingController();
+  final numPlateCont = TextEditingController();
+
+
   String sendToFb;
   List<CustomFloorTile> floorsBox = [];
   int floorCount;
   STATE currentState = STATE.MAIN;
-
+  String name, numPlate, ph, pay = '0', fac;
 
   @override
   void dispose() async {
@@ -72,11 +80,14 @@ class TextDetectorViewState extends State<GuardScreen> {
     fToast.init(context);
   }
 
-  callBackState(c){
+  callBackState(c, f, co){
+    print('current: $f $co');
       setState(() {
-        currentState = STATE.MAIN;
+        currentState = STATE.WAIT;
         floorsBox.clear();
       });
+      updateParkingCount(f, co);
+      //will update the reserve count
   }
 
 
@@ -111,7 +122,74 @@ class TextDetectorViewState extends State<GuardScreen> {
   }
 
 
+  saveGuestInfo(name, numPlate, ph, pay,fac) async {
+    try {
+      var docSnapshot =
+      await _firestore.collection('Guest').get();
+      if (docSnapshot != null) {
+        //Map<String, dynamic> data = docSnapshot.data();
 
+
+        _firestore.collection('Guest').doc() // <-- Document ID
+            .set({
+          'name' : name,
+          'numberPlate' : numPlate,
+          'phoneNo': ph,
+          'payment': pay,
+          'purpose': fac,
+        });
+
+        showMyDialog('$name has been registered','tick');
+        //showToast('updated', Colors.greenAccent, Icons.check);
+        nameCont.clear();
+        phCont.clear();
+        payCont.clear();
+        facCont.clear();
+        numPlateCont.clear();
+        this.name = null;
+        this.numPlate = null;
+        this.ph = null;
+        this.pay = null;
+        this.fac = null;
+
+      } else {
+        showToast('error', Colors.redAccent, Icons.clear);
+
+        //showMyDialog('NO RECORD FOUND','cross');
+      }
+    } catch (e) {
+      showToast('$e', Colors.redAccent, Icons.clear);
+    }
+  }
+
+  updateParkingCount (floorName,int count) async {
+    try {
+      var docSnapshot =
+      await _firestore.collection('Parking Area').doc(floorName).get();
+      if (docSnapshot.exists) {
+        //Map<String, dynamic> data = docSnapshot.data();
+
+
+        _firestore.collection('Parking Area').doc(floorName) // <-- Document ID
+            .set({
+          'AreaTitle' : floorName,
+          'Reserved' : '0',
+          'count': count,
+        });
+
+        //showMyDialog('$carName has been Verified','tick');
+        showToast('updated', Colors.greenAccent, Icons.check);
+        getParkingCount();
+      } else {
+        showToast('error', Colors.redAccent, Icons.clear);
+
+        //showMyDialog('NO RECORD FOUND','cross');
+      }
+    } catch (e) {
+      showToast('$e', Colors.redAccent, Icons.clear);
+    }
+
+  }
   getParkingCount() async {
     try {
       final QuerySnapshot result =
@@ -159,6 +237,8 @@ class TextDetectorViewState extends State<GuardScreen> {
     });
 
   }
+
+
 
     main(context) {
       return WillPopScope(
@@ -210,8 +290,11 @@ class TextDetectorViewState extends State<GuardScreen> {
                       ButtonBuilder(
                           onPress: () async {
                             parkingFloorNames.clear(); 
-                            getParkingCount();
 
+                            setState(() {
+                              currentState = STATE.WAIT;
+                            });
+                            getParkingCount();
 
 
                           }, color: Colors.blue, text: 'CHECK PARKING STATUS'),
@@ -241,6 +324,11 @@ class TextDetectorViewState extends State<GuardScreen> {
               leading: IconButton(
                 icon: Icon(Icons.arrow_back, color: Colors.white),
                 onPressed: () {
+                  this.name = null;
+                  this.numPlate = null;
+                  this.ph = null;
+                  this.pay = null;
+                  this.fac = null;
                   setState(() {
                     currentState = STATE.MAIN;
                   });
@@ -281,11 +369,12 @@ class TextDetectorViewState extends State<GuardScreen> {
                       ),
                       InputField(
                         onChange: (value) {
-
+                          name = value;
                         },
                         bcolor: Colors.blue,
                         text: 'Name here',
                         type: TextInputType.name,
+                        tec: nameCont,
                       ),
                       SizedBox(
                         height: 24.0,
@@ -301,11 +390,12 @@ class TextDetectorViewState extends State<GuardScreen> {
                       ),
                       InputField(
                         onChange: (value) {
-
+                          numPlate = value;
                         },
                         bcolor: Colors.blue,
                         text: 'ABC-XX-XXXX',
                         type: TextInputType.name,
+                        tec: numPlateCont,
                       ),
                       SizedBox(
                         height: 24.0,
@@ -321,11 +411,12 @@ class TextDetectorViewState extends State<GuardScreen> {
                       ),
                       InputField(
                         onChange: (value) {
-
+                          ph = value;
                         },
                         bcolor: Colors.blue,
                         text: '+92-XXX-XXXXXXX',
                         type: TextInputType.phone,
+                        tec: phCont,
                       ),
                       SizedBox(
                         height: 24.0,
@@ -341,11 +432,12 @@ class TextDetectorViewState extends State<GuardScreen> {
                       ),
                       InputField(
                         onChange: (value) {
-
+                          pay = value;
                         },
                         bcolor: Colors.green,
                         text: '0.0',
                         type: TextInputType.number,
+                        tec: payCont,
                       ),
                       SizedBox(
                         height: 24.0,
@@ -361,17 +453,25 @@ class TextDetectorViewState extends State<GuardScreen> {
                       ),
                       InputField(
                         onChange: (value) {
-
+                          fac = value;
                         },
                         bcolor: Colors.blue,
                         text: 'faculty name',
                         type: TextInputType.text,
+                        tec: facCont,
                       ),
                       SizedBox(
                         height: 24.0,
                       ),
                       ButtonBuilder(
                           onPress: () async {
+                            print('$name, $ph, $fac, $pay, $numPlate');
+                            if(name != null && numPlate != null && ph != null && fac != null) {
+                              saveGuestInfo(name, numPlate.toUpperCase(), ph, pay, fac);
+
+                            }
+                            else
+                              showToast('Fields Empty', Colors.redAccent, Icons.clear);
 
                           }, color: Colors.green, text: 'SAVE INFO'),
                       SizedBox(
@@ -428,7 +528,18 @@ class TextDetectorViewState extends State<GuardScreen> {
 
     @override
     Widget build(BuildContext context) {
-      if (currentState == STATE.MAIN) {
+      if (currentState == STATE.WAIT) {
+        return ModalProgressHUD(
+          inAsyncCall: true,
+          opacity: 1,
+          color: Colors.white10,
+          progressIndicator: CircularProgressIndicator(
+            color: Colors.deepOrange,
+          ),
+          child: Container(),
+        );
+      }
+      else if (currentState == STATE.MAIN) {
         return main(context);
       } else if (currentState == STATE.SCAN) {
         return scan(context);
