@@ -54,7 +54,7 @@ class _CarFareState extends State<CarFare>{
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         textTheme: TextTheme(
-          body1: TextStyle(color: Colors.black54),
+          bodyText1: TextStyle(color: Colors.black54),
         ),
         backgroundColor: Color(0xFF141313),
       ),

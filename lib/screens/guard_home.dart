@@ -63,7 +63,8 @@ class TextDetectorViewState extends State<GuardScreen> {
   List<CustomFloorTile> floorsBox = [];
   int floorCount;
   STATE currentState = STATE.MAIN;
-  String name, numPlate, ph, pay = '0', fac;
+  String name, numPlate, ph, fac;
+  int pay = 0;
 
   @override
   void dispose() async {
@@ -123,23 +124,27 @@ class TextDetectorViewState extends State<GuardScreen> {
 
 
   saveGuestInfo(name, numPlate, ph, pay,fac) async {
+    String latestTime = getTime();
     try {
       var docSnapshot =
       await _firestore.collection('Guest').get();
       if (docSnapshot != null) {
         //Map<String, dynamic> data = docSnapshot.data();
+        setState(() {
+          currentState = STATE.TOKEN;
+        });
 
-
-        _firestore.collection('Guest').doc() // <-- Document ID
+        _firestore.collection('Guest').doc('$latestTime') // <-- Document ID
             .set({
           'name' : name,
           'numberPlate' : numPlate,
           'phoneNo': ph,
           'payment': pay,
           'purpose': fac,
+          'time': latestTime,
         });
 
-        showMyDialog('$name has been registered','tick');
+        showMyDialog('$name | has been registered','tick');
         //showToast('updated', Colors.greenAccent, Icons.check);
         nameCont.clear();
         phCont.clear();
@@ -432,7 +437,8 @@ class TextDetectorViewState extends State<GuardScreen> {
                       ),
                       InputField(
                         onChange: (value) {
-                          pay = value;
+                          pay = int.parse(value);
+                          print(pay);
                         },
                         bcolor: Colors.green,
                         text: '0.0',
@@ -468,7 +474,9 @@ class TextDetectorViewState extends State<GuardScreen> {
                             print('$name, $ph, $fac, $pay, $numPlate');
                             if(name != null && numPlate != null && ph != null && fac != null) {
                               saveGuestInfo(name, numPlate.toUpperCase(), ph, pay, fac);
-
+                              setState(() {
+                                currentState = STATE.WAIT;
+                              });
                             }
                             else
                               showToast('Fields Empty', Colors.redAccent, Icons.clear);
@@ -688,6 +696,8 @@ class TextDetectorViewState extends State<GuardScreen> {
       disPlate(n);
       print('FINAL: $numberPlate');
       verify(numberPlate);
+
+
       showToast('$numberPlate', Colors.greenAccent, Icons.check);
       numberPlate.clear();
       print('Found ${recognisedText.blocks.length} textBlocks');
