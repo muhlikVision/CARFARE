@@ -41,6 +41,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<CustomTile> carsBox = [];
 
+  final floorCont = TextEditingController();
+  final numpCont = TextEditingController();
 
   User loggedinUser;
   //userinfo
@@ -54,9 +56,11 @@ class _HomeScreenState extends State<HomeScreen> {
   String status = ''; //temp
 
   //reservations
-  String floorName, reserveTime;
+  String floorName, reserveTime, reserveCar;
   DateTime _dateTime;
   TimeOfDay _timeOfDay;
+
+  String stDateTime, eDateTime;
 
   DateTime now = DateTime.now();
   String formattedDate = DateFormat('yyyy-MM-dd – kk:mm').format(DateTime.now());
@@ -75,14 +79,86 @@ class _HomeScreenState extends State<HomeScreen> {
   // Future<void> makePayments() async {
   //   final url = Uri.parse('');
   // }
-
+  Future<void> showMyDialog(String text, String anim) async {
+    return showDialog(
+      context: context,
+      //barrierColor:  Colors.deepOrange.withOpacity(0.5),// user must tap button!
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: Colors.black,
+          shape: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20.0)),
+          title: Image.asset('images/$anim.gif', height: 100.0, width: 100.0,),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Center(child: Text('$text')),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context, rootNavigator: true).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
   String splitIt(String n)
   {
     List<String> lol = n.split(' ');
     return lol[0];
   }
 
+  saveReservationInfo(name, st, e, nump, uid, floorN) async {
+    bool chk = true;
+    try {
+      var docSnapshot =
+      await _firestore.collection('Reservations').get();
+      if (docSnapshot != null) {
+        //Map<String, dynamic> data = docSnapshot.data();
+        setState(() {
+          currentState = WAIT.RESERVATIONS;
+        });
 
+        _firestore.collection('Reservations').doc() // <-- Document ID
+            .set({
+          'name' : name,
+          'numberPlate' : nump,
+          'start': st,
+          'end': e,
+          'floor': floorN,
+          'Uid': uid,
+          'status': chk,
+        });
+
+        showMyDialog('$name \n$nump \nStart: $st \nEnd: $e \n$floorN','tick');
+        //showToast('updated', Colors.greenAccent, Icons.check);
+        floorCont.clear();
+        numpCont.clear();
+
+        this.floorName = null;
+        this.reserveCar = null;
+        this.reserveTime = null;
+        this.stDateTime = null;
+        this.eDateTime = null;
+
+
+      } else {
+        showToast('error', Colors.redAccent, Icons.clear);
+        setState(() {
+          currentState = WAIT.RESERVATIONS;
+        });
+        //showMyDialog('NO RECORD FOUND','cross');
+      }
+    } catch (e) {
+      showToast('$e', Colors.redAccent, Icons.clear);
+    }
+  }
   getParkingCount() async {
     try {
       final QuerySnapshot result =
@@ -109,7 +185,6 @@ class _HomeScreenState extends State<HomeScreen> {
       showToast('$e', Colors.redAccent, Icons.clear);
     }
   }
-
   void getCurrentUser() async {
     try {
       final user = _auth.currentUser;
@@ -206,6 +281,8 @@ class _HomeScreenState extends State<HomeScreen> {
       showToast('$e', Colors.redAccent, Icons.clear);
     }
   }
+
+
   vehicles(context) {
     return WillPopScope(
       onWillPop: () async {
@@ -248,6 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   currentState = WAIT.DATA_FETCHED;
                 });
+                parkingFloorNames.clear();
               },
             ),
             title: Text('Reservations'),
@@ -265,6 +343,176 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(
                       height: 24.0,
                     ),
+
+                    Center(
+                      child: Text(
+                        "SELECT Time and Date",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 15.0,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        ButtonBuilder(
+                            onPress: () async {
+                              bool chk = false;
+                              showTimePicker(
+                                context: context,
+                                initialTime: _timeOfDay == null ? TimeOfDay.fromDateTime(_timeOfDay ?? DateTime.now()) : _timeOfDay,
+
+                              ).then((time) {
+                                setState(() {
+                                  _timeOfDay = time;
+
+                                  print(_timeOfDay.format(context));
+
+                                  if(_dateTime != null && _timeOfDay != null) {
+                                    final String dateTimeString = splitIt(_dateTime.toString()) + " " + _timeOfDay.format(context).toString();
+                                    print(dateTimeString);
+                                    try {
+                                      print(format.parse(dateTimeString));
+                                      stDateTime = format.parse(dateTimeString).toString();
+                                    }
+                                    catch(e) {
+                                      print(e);
+                                    }
+                                  }
+
+                                });
+                              });
+                              showDatePicker(
+                                  context: context,
+                                  initialDate: _dateTime == null ? DateTime.now() : _dateTime,
+                                  firstDate: DateTime(2001),
+                                  lastDate: DateTime(2024)
+                              ).then((date) {
+                                setState(() {
+                                  _dateTime = date;
+                                  print(_dateTime);
+                                });
+                              });
+                            }, color: Colors.greenAccent, text: 'START DATE/TIME'),
+                        ButtonBuilder(
+                            onPress: () async {
+                              bool chk = false;
+                              showTimePicker(
+                                context: context,
+                                initialTime: _timeOfDay == null ? TimeOfDay.fromDateTime(_timeOfDay ?? DateTime.now()) : _timeOfDay,
+
+                              ).then((time) {
+                                setState(() {
+                                  _timeOfDay = time;
+
+                                  print(_timeOfDay.format(context));
+
+                                  if(_dateTime != null && _timeOfDay != null) {
+                                    final String dateTimeString = splitIt(_dateTime.toString()) + " " + _timeOfDay.format(context).toString();
+                                    print(dateTimeString);
+                                    try {
+                                      print(format.parse(dateTimeString));
+                                      eDateTime = format.parse(dateTimeString).toString();
+                                    }
+                                    catch(e) {
+                                      print(e);
+                                    }
+                                  }
+
+                                });
+                              });
+                              showDatePicker(
+                                  context: context,
+                                  initialDate: _dateTime == null ? DateTime.now() : _dateTime,
+                                  firstDate: DateTime(2001),
+                                  lastDate: DateTime(2024)
+                              ).then((date) {
+                                setState(() {
+                                  _dateTime = date;
+                                  print(_dateTime);
+                                });
+                              });
+                            }, color: Colors.redAccent, text: 'END DATE/TIME'),
+                      ],
+                    ),
+                    // ButtonBuilder(
+                    //     onPress: () async {
+                    //       bool chk = false;
+                    //       showTimePicker(
+                    //         context: context,
+                    //         initialTime: _timeOfDay == null ? TimeOfDay.fromDateTime(_timeOfDay ?? DateTime.now()) : _timeOfDay,
+                    //
+                    //       ).then((time) {
+                    //         setState(() {
+                    //           _timeOfDay = time;
+                    //
+                    //           print(_timeOfDay.format(context));
+                    //
+                    //           if(_dateTime != null && _timeOfDay != null) {
+                    //             final String dateTimeString = splitIt(_dateTime.toString()) + " " + _timeOfDay.format(context).toString();
+                    //             print(dateTimeString);
+                    //             try {
+                    //               print(format.parse(dateTimeString));
+                    //             }
+                    //             catch(e) {
+                    //               print(e);
+                    //             }
+                    //           }
+                    //
+                    //         });
+                    //       });
+                    //       showDatePicker(
+                    //           context: context,
+                    //           initialDate: _dateTime == null ? DateTime.now() : _dateTime,
+                    //           firstDate: DateTime(2001),
+                    //           lastDate: DateTime(2024)
+                    //       ).then((date) {
+                    //         setState(() {
+                    //           _dateTime = date;
+                    //           print(_dateTime);
+                    //         });
+                    //       });
+                    //     }, color: Colors.green, text: 'SELECT DATE/TIME'),
+                    // ButtonBuilder(
+                    //     onPress: () async {
+                    //       bool chk = false;
+                    //       showTimePicker(
+                    //         context: context,
+                    //         initialTime: _timeOfDay == null ? TimeOfDay.fromDateTime(_timeOfDay ?? DateTime.now()) : _timeOfDay,
+                    //
+                    //       ).then((time) {
+                    //         setState(() {
+                    //           _timeOfDay = time;
+                    //
+                    //           print(_timeOfDay.format(context));
+                    //
+                    //           if(_dateTime != null && _timeOfDay != null) {
+                    //             final String dateTimeString = splitIt(_dateTime.toString()) + " " + _timeOfDay.format(context).toString();
+                    //             print(dateTimeString);
+                    //             try {
+                    //               print(format.parse(dateTimeString));
+                    //             }
+                    //             catch(e) {
+                    //               print(e);
+                    //             }
+                    //           }
+                    //
+                    //         });
+                    //       });
+                    //       showDatePicker(
+                    //           context: context,
+                    //           initialDate: _dateTime == null ? DateTime.now() : _dateTime,
+                    //           firstDate: DateTime(2001),
+                    //           lastDate: DateTime(2024)
+                    //       ).then((date) {
+                    //         setState(() {
+                    //           _dateTime = date;
+                    //           print(_dateTime);
+                    //         });
+                    //       });
+                    //     }, color: Colors.green, text: 'SELECT DATE/TIME'),
                     Center(
                       child: Text(
                         'Available floors for reservations below\n $parkingFloorNames',
@@ -290,162 +538,67 @@ class _HomeScreenState extends State<HomeScreen> {
                       bcolor: Colors.blue,
                       text: 'B1, G, H2 etc.',
                       type: TextInputType.name,
+                      tec: floorCont,
                       //tec: nameCont,
                     ),
                     SizedBox(
                       height: 24.0,
                     ),
+                    SizedBox(
+                      height: 15.0,
+                    ),
                     Center(
                       child: Text(
-                        "Enter Time and Date",
+                        "Enter The numberplate of your car you want to reserve",
                         style: TextStyle(color: Colors.white),
                       ),
                     ),
                     SizedBox(
                       height: 15.0,
                     ),
-                    ButtonBuilder(
-                        onPress: () async {
-                          showDatePicker(
-                              context: context,
-                              initialDate: _dateTime == null ? DateTime.now() : _dateTime,
-                              firstDate: DateTime(2001),
-                              lastDate: DateTime(2024)
-                          ).then((date) {
-                            setState(() {
-                              _dateTime = date;
-                              print(_dateTime);
-                            });
-                          });
-
-                        }, color: Colors.green, text: 'SELECT DATE'),
-                    SizedBox(
-                      height: 15.0,
-                    ),
-                    ButtonBuilder(
-                        onPress: () async {
-                          showTimePicker(
-                              context: context,
-                              initialTime: _timeOfDay == null ? TimeOfDay.fromDateTime(_timeOfDay ?? DateTime.now()) : _timeOfDay,
-
-                          ).then((time) {
-                            setState(() {
-                              _timeOfDay = time;
-                              print(_timeOfDay.format(context));
-                            });
-                          });
-
-                        }, color: Colors.green, text: 'SELECT TIME'),
-                    SizedBox(
-                      height: 15.0,
-                    ),
-
-                    ButtonBuilder(
-                        onPress: () async {
-
-                          if(_dateTime != null && _timeOfDay != null) {
-                            final String dateTimeString = splitIt(_dateTime.toString()) + " " + _timeOfDay.format(context).toString();
-                            print(dateTimeString);
-                            try {
-                              print(format.parse(dateTimeString));
-                            }
-                            catch(e) {
-                            print(e);
-                            }
-                          }
-                        }, color: Colors.green, text: 'SELECT TIME'),
-                    SizedBox(
-                      height: 15.0,
-                    ),
                     InputField(
                       onChange: (value) {
-                        //numPlate = value;
+                        reserveCar = value;
                       },
                       bcolor: Colors.blue,
-                      text: 'ABC-XX-XXXX',
+                      text: 'ABC-12-3456',
                       type: TextInputType.name,
-                      //tec: numPlateCont,
-                    ),
-                    SizedBox(
-                      height: 24.0,
-                    ),
-                    Center(
-                      child: Text(
-                        "Guest's CellPhone: *",
-                        style: TextStyle(color: Colors.white),
-                      ),
+                      tec: numpCont,
+                      //tec: nameCont,
                     ),
                     SizedBox(
                       height: 15.0,
-                    ),
-                    InputField(
-                      onChange: (value) {
-                        //ph = value;
-                      },
-                      bcolor: Colors.blue,
-                      text: '+92-XXX-XXXXXXX',
-                      type: TextInputType.phone,
-                      //tec: phCont,
-                    ),
-                    SizedBox(
-                      height: 24.0,
-                    ),
-                    Center(
-                      child: Text(
-                        "Payment Amount (OPTIONAL)",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 15.0,
-                    ),
-                    InputField(
-                      onChange: (value) {
-                        //pay = int.parse(value);
-
-                      },
-                      bcolor: Colors.green,
-                      text: '0.0',
-                      type: TextInputType.number,
-                      //tec: payCont,
-                    ),
-                    SizedBox(
-                      height: 24.0,
-                    ),
-                    Center(
-                      child: Text(
-                        "Purpose of visit: *",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    SizedBox(
-                      height: 15.0,
-                    ),
-                    InputField(
-                      onChange: (value) {
-                        //fac = value;
-                      },
-                      bcolor: Colors.blue,
-                      text: 'faculty name',
-                      type: TextInputType.text,
-                      //tec: facCont,
-                    ),
-                    SizedBox(
-                      height: 24.0,
                     ),
                     ButtonBuilder(
                         onPress: () async {
-                          // print('$name, $ph, $fac, $pay, $numPlate');
-                          // if(name != null && numPlate != null && ph != null && fac != null) {
-                          //   saveGuestInfo(name, numPlate.toUpperCase(), ph, pay, fac);
-                          //   setState(() {
-                          //     currentState = STATE.WAIT;
-                          //   });
-                          // }
-                          // else
-                          //   showToast('Fields Empty', Colors.redAccent, Icons.clear);
-
-                        }, color: Colors.green, text: 'SAVE INFO'),
+                          bool chk = false;
+                          if(name != null && reserveCar != null && floorName != null)
+                            {
+                              for(int i = 0; i < myVehicles.length; i++)
+                                {
+                                  if(reserveCar.toUpperCase() == myVehicles[i]){
+                                    chk = true;
+                                    break;
+                                  }
+                                }
+                              for(int i = 0; i < parkingFloorNames.length; i++)
+                              {
+                                if(floorName.toUpperCase() == parkingFloorNames[i].toUpperCase()){
+                                  chk = true;
+                                  break;
+                                }
+                              }
+                              if(chk == true){
+                                setState(() {
+                                  currentState = WAIT.DATA_IN_PROCESS;
+                                });
+                                saveReservationInfo(name, stDateTime, eDateTime, reserveCar.toUpperCase(), loggedInUid, floorName.toUpperCase());
+                              }
+                              else {
+                                showToast('fields not correct', Colors.redAccent, Icons.clear);
+                              }
+                            }
+                        }, color: Colors.blue, text: 'RESERVE'),
                     SizedBox(
                       height: 24.0,
                     ),
@@ -547,6 +700,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _auth.signOut();
                         Navigator.popAndPushNamed(context, LoginScreen.id);
                         //Navigator.pop(context);
+                        parkingFloorNames.clear();
                       },
                     ),
                   ),
