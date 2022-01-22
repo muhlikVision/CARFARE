@@ -23,6 +23,7 @@ enum WAIT {
   PAYMENTS,
   SUPPORT,
   RESERVATIONS,
+  SHOW_RESERVATIONS,
 }
 
 List<String> parkingFloorNames = [''];
@@ -40,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   WAIT currentState = WAIT.DATA_IN_PROCESS;
 
   List<CustomTile> carsBox = [];
+  List<CustomReserveTile> rBox = [];
 
   final floorCont = TextEditingController();
   final numpCont = TextEditingController();
@@ -108,11 +110,13 @@ class _HomeScreenState extends State<HomeScreen> {
       },
     );
   }
-  String splitIt(String n)
-  {
+  String splitIt(String n) {
     List<String> lol = n.split(' ');
     return lol[0];
   }
+
+
+
 
   saveReservationInfo(name, st, e, nump, uid, floorN) async {
     bool chk = true;
@@ -282,7 +286,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   vehicles(context) {
     return WillPopScope(
       onWillPop: () async {
@@ -437,82 +440,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             }, color: Colors.redAccent, text: 'END DATE/TIME'),
                       ],
                     ),
-                    // ButtonBuilder(
-                    //     onPress: () async {
-                    //       bool chk = false;
-                    //       showTimePicker(
-                    //         context: context,
-                    //         initialTime: _timeOfDay == null ? TimeOfDay.fromDateTime(_timeOfDay ?? DateTime.now()) : _timeOfDay,
-                    //
-                    //       ).then((time) {
-                    //         setState(() {
-                    //           _timeOfDay = time;
-                    //
-                    //           print(_timeOfDay.format(context));
-                    //
-                    //           if(_dateTime != null && _timeOfDay != null) {
-                    //             final String dateTimeString = splitIt(_dateTime.toString()) + " " + _timeOfDay.format(context).toString();
-                    //             print(dateTimeString);
-                    //             try {
-                    //               print(format.parse(dateTimeString));
-                    //             }
-                    //             catch(e) {
-                    //               print(e);
-                    //             }
-                    //           }
-                    //
-                    //         });
-                    //       });
-                    //       showDatePicker(
-                    //           context: context,
-                    //           initialDate: _dateTime == null ? DateTime.now() : _dateTime,
-                    //           firstDate: DateTime(2001),
-                    //           lastDate: DateTime(2024)
-                    //       ).then((date) {
-                    //         setState(() {
-                    //           _dateTime = date;
-                    //           print(_dateTime);
-                    //         });
-                    //       });
-                    //     }, color: Colors.green, text: 'SELECT DATE/TIME'),
-                    // ButtonBuilder(
-                    //     onPress: () async {
-                    //       bool chk = false;
-                    //       showTimePicker(
-                    //         context: context,
-                    //         initialTime: _timeOfDay == null ? TimeOfDay.fromDateTime(_timeOfDay ?? DateTime.now()) : _timeOfDay,
-                    //
-                    //       ).then((time) {
-                    //         setState(() {
-                    //           _timeOfDay = time;
-                    //
-                    //           print(_timeOfDay.format(context));
-                    //
-                    //           if(_dateTime != null && _timeOfDay != null) {
-                    //             final String dateTimeString = splitIt(_dateTime.toString()) + " " + _timeOfDay.format(context).toString();
-                    //             print(dateTimeString);
-                    //             try {
-                    //               print(format.parse(dateTimeString));
-                    //             }
-                    //             catch(e) {
-                    //               print(e);
-                    //             }
-                    //           }
-                    //
-                    //         });
-                    //       });
-                    //       showDatePicker(
-                    //           context: context,
-                    //           initialDate: _dateTime == null ? DateTime.now() : _dateTime,
-                    //           firstDate: DateTime(2001),
-                    //           lastDate: DateTime(2024)
-                    //       ).then((date) {
-                    //         setState(() {
-                    //           _dateTime = date;
-                    //           print(_dateTime);
-                    //         });
-                    //       });
-                    //     }, color: Colors.green, text: 'SELECT DATE/TIME'),
                     Center(
                       child: Text(
                         'Available floors for reservations below\n $parkingFloorNames',
@@ -572,6 +499,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ButtonBuilder(
                         onPress: () async {
                           bool chk = false;
+                          bool chk2 = false;
                           if(name != null && reserveCar != null && floorName != null)
                             {
                               for(int i = 0; i < myVehicles.length; i++)
@@ -584,19 +512,30 @@ class _HomeScreenState extends State<HomeScreen> {
                               for(int i = 0; i < parkingFloorNames.length; i++)
                               {
                                 if(floorName.toUpperCase() == parkingFloorNames[i].toUpperCase()){
-                                  chk = true;
+                                  chk2 = true;
                                   break;
                                 }
                               }
-                              if(chk == true){
-                                setState(() {
-                                  currentState = WAIT.DATA_IN_PROCESS;
-                                });
-                                saveReservationInfo(name, stDateTime, eDateTime, reserveCar.toUpperCase(), loggedInUid, floorName.toUpperCase());
+                              if(chk == true && chk2 == true){
+
+                                if(DateTime.parse(stDateTime).isAfter(DateTime.now()) && DateTime.parse(eDateTime).isAfter(DateTime.parse(stDateTime)))
+                                  {
+                                    setState(() {
+                                      currentState = WAIT.DATA_IN_PROCESS;
+                                    });
+                                    saveReservationInfo(name, stDateTime, eDateTime, reserveCar.toUpperCase(), loggedInUid, floorName.toUpperCase());
+                                  }
+                                else
+                                  showToast('Time not selected correctly', Colors.redAccent, Icons.clear);
+
                               }
                               else {
-                                showToast('fields not correct', Colors.redAccent, Icons.clear);
+                                showToast('Floor or Number plate Incorrect', Colors.redAccent, Icons.clear);
                               }
+                            }
+                          else
+                            {
+                              showToast('fields empty', Colors.redAccent, Icons.clear);
                             }
                         }, color: Colors.blue, text: 'RESERVE'),
                     SizedBox(
@@ -605,8 +544,90 @@ class _HomeScreenState extends State<HomeScreen> {
                   ]))),
     );
   }
-  checkReservations(context){
 
+
+  getReservationInfo() async {
+    try{
+      List<dynamic> docid;
+      final QuerySnapshot result =
+      await _firestore.collection('Reservations').get();
+
+        if (result.docs.isNotEmpty) {
+          //Map<String, dynamic> data = docSnapshot.data();
+          final List<DocumentSnapshot> documents = result.docs;
+
+          try {
+            for (int i = 0; i < documents.length; i++) {
+              print(documents[i].id);
+              var docSnapshot = await _firestore
+                  .collection('Reservations')
+                  .doc(documents[i].id)
+                  .get();
+              if (docSnapshot.exists) {
+                Map<String, dynamic> data = docSnapshot.data();
+
+                final uid = data['Uid'];
+                final name = data['name'];
+                final start = data['start'];
+                final end = data['end'];
+                final floor = data['floor'];
+                final numplate = data['numberPlate'];
+
+                if(loggedInUid == uid){
+
+                  final rsBox = CustomReserveTile(floorName: floor.toString(), userName: name.toString(), startTime: start.toString(), endTime: end.toString(), numberPlate: numplate.toString(),);
+                  rBox.add(rsBox);
+                }
+              }
+            }
+            setState(() {
+              currentState = WAIT.SHOW_RESERVATIONS;
+            });
+          }
+          catch(e){
+            print(e);
+            showToast('$e', Colors.redAccent, Icons.clear);
+          }
+        }
+        else{
+          print('nothing found');
+        }
+
+    }
+    catch(e)
+    {
+      print(e);
+      showToast('$e', Colors.redAccent, Icons.clear);
+    }
+
+  }
+  checkReservations(context){
+    return WillPopScope(
+      onWillPop: () async {
+        return;
+      },
+      child: Scaffold(
+        backgroundColor: Color(0xFF141313),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              setState(() {
+                currentState = WAIT.DATA_FETCHED;
+              });
+              rBox.clear();
+            },
+          ),
+          title: Text('My Reservations'),
+          elevation: 20,
+          backgroundColor: color,
+        ),
+        body: ListView(
+          shrinkWrap: true,
+          children: rBox,
+        ),
+      ),
+    );
   }
 
   homeScreen(context) {
@@ -761,7 +782,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             height: 8.0,
                           ),
                           ButtonBuilder(onPress: (){
-
+                            setState(() {
+                              currentState = WAIT.DATA_IN_PROCESS;
+                            });
+                            getReservationInfo();
                           },
                               color: Colors.blue,
                               text: 'CHECK MY RESERVATIONS'),
@@ -792,6 +816,8 @@ class _HomeScreenState extends State<HomeScreen> {
       return vehicles(context);
     } else if (currentState == WAIT.RESERVATIONS) {
       return reservations(context);
+    } else if (currentState == WAIT.SHOW_RESERVATIONS) {
+      return checkReservations(context);
     } else {
       return homeScreen(context);
     }

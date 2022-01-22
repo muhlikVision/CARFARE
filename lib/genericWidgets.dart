@@ -423,3 +423,69 @@ class CustomFloorTile extends StatelessWidget{
     );
   }
 }
+
+class CustomReserveTile extends StatelessWidget{
+
+  final floorName;
+  final userName;
+  final startTime;
+  final endTime;
+  final numberPlate;
+
+  const CustomReserveTile({Key key, this.floorName, this.userName, this.startTime, this.endTime, this.numberPlate}) : super(key: key);
+
+
+  @override
+  Widget build(BuildContext context) {
+
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListTile(
+        hoverColor: Colors.black54,
+        tileColor: DateTime.parse(endTime).isBefore(DateTime.now())? Colors.red: Colors.green,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          leading: Container(
+            padding: EdgeInsets.only(right: 12.0),
+            decoration: new BoxDecoration(
+                border: new Border(
+                    right: new BorderSide(width: 1.0, color: Colors.white24))),
+            child: Icon(Icons.airport_shuttle),
+          ),
+          title: Text(
+            '$numberPlate',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          // subtitle: Text("Intermediate", style: TextStyle(color: Colors.white)),
+
+          subtitle: Column(
+            children: [
+              Row(
+                children: <Widget>[
+                  Icon(Icons.access_alarm),
+                  Text(" Start | $startTime", style: TextStyle(color: Colors.white))
+                ],
+              ),
+              Row(
+                children: <Widget>[
+                  Icon(Icons.alarm_off),
+                  Text(" End | $endTime", style: TextStyle(color: Colors.white))
+                ],
+              ),
+              Row(
+                children: <Widget>[
+                  Icon(Icons.add_business_sharp),
+                  Text(" Parking Floor | $floorName", style: TextStyle(color: Colors.white))
+                ],
+              ),
+            ],
+          ),
+          trailing:
+          Icon(Icons.keyboard_arrow_right, color: Colors.white, size: 30.0)),
+
+    );
+  }
+}
