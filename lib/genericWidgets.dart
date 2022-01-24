@@ -201,15 +201,15 @@ class InputField extends StatelessWidget {
         hintText: text,
         contentPadding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.all(Radius.circular(32.0)),
+          borderRadius: BorderRadius.all(Radius.circular(12.0)),
         ),
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: bcolor, width: 1.0),
-          borderRadius: BorderRadius.all(Radius.circular(32.0)),
+          borderRadius: BorderRadius.all(Radius.circular(12.0)),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: bcolor, width: 4.0),
-          borderRadius: BorderRadius.all(Radius.circular(32.0)),
+          borderRadius: BorderRadius.all(Radius.circular(12.0)),
         ),
       ),
     );
@@ -420,6 +420,71 @@ class CustomFloorTile extends StatelessWidget{
           //   ],
           // ),
          ),
+    );
+  }
+}
+
+class CustomFloorDisplayTile extends StatelessWidget{
+
+  final floorName;
+  final reserve;
+  final count;
+
+  const CustomFloorDisplayTile({Key key, this.count, this.floorName, this.reserve}) : super(key: key);
+
+
+  @override
+  Widget build(BuildContext context) {
+
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListTile(
+        hoverColor: Colors.black54,
+        tileColor: Colors.white10,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(25.0),
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+        // leading: Container(
+        //   padding: EdgeInsets.only(right: 12.0),
+        //   decoration: new BoxDecoration(
+        //       border: new Border(
+        //           right: new BorderSide(width: 1.0, color: Colors.white24))),
+        //   child: Icon(floorName == 'car'? Icons.airport_shuttle: Icons.two_wheeler, color: Colors.white),
+        // ),
+        title: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text("$floorName", style: TextStyle(color: Colors.white, fontSize: 20)),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  ' $count ',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 30),
+                ),
+              ],
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text("Reserved  |", style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,)),
+                Text("  $reserve", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

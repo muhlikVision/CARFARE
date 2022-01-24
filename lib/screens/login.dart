@@ -107,12 +107,27 @@ class _LoginScreenState extends State<LoginScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             Flexible(
-              child: Hero(
-                tag: 'logo',
-                child: Container(
-                  height: 200.0,
-                  child: Image.asset('images/logo.jpg'),
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    DefaultTextStyle(
+                      style: const TextStyle(
+                        fontSize: 50.0,
+                        color: Colors.deepOrange,
+                      ),
+                      child: AnimatedTextKit(
+                        animatedTexts: [
+                          WavyAnimatedText('CARFARE.'),
+                        ],
+                        isRepeatingAnimation: true,
+                        repeatForever: true,
+                        onTap: () {
+                          print("Tap Event");
+                        },
+                      ),
+                    )
+                    ],
               ),
             ),
             SizedBox(
@@ -303,12 +318,27 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
             ),
             Flexible(
-              child: Hero(
-                tag: 'logo',
-                child: Container(
-                  height: 200.0,
-                  child: Image.asset('images/logo.jpg'),
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: <Widget>[
+                  DefaultTextStyle(
+                    style: const TextStyle(
+                      fontSize: 50.0,
+                      color: Colors.deepOrange,
+                    ),
+                    child: AnimatedTextKit(
+                      animatedTexts: [
+                        WavyAnimatedText('CARFARE.'),
+                      ],
+                      isRepeatingAnimation: true,
+                      repeatForever: true,
+                      onTap: () {
+                        print("Tap Event");
+                      },
+                    ),
+                  )
+                ],
               ),
             ),
             SizedBox(

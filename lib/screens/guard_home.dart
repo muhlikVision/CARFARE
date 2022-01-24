@@ -195,6 +195,7 @@ class TextDetectorViewState extends State<GuardScreen> {
     }
 
   }
+
   getParkingCount() async {
     try {
       final QuerySnapshot result =
