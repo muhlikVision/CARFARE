@@ -686,7 +686,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     Center(
                       child: Text(
-                        'Available floors for reservations below\n $parkingFloorNames',
+                        'Available floors for reservations below',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontStyle: FontStyle.normal),
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        '$parkingFloorNames',
                         style: TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -725,6 +734,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Text(
                         "Enter The numberplate of your car you want to reserve",
                         style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                    Center(
+                      child: Text(
+                        "$myVehicles",
+                        style: TextStyle(color: Colors.white,fontSize: 18,),
                       ),
                     ),
                     SizedBox(
