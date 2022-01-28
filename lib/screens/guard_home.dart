@@ -28,6 +28,10 @@ String vehicle_status = 'entry';
 List<String> parkingFloorNames = [''];
 List<String> trafficMonitorDocNames = [''];
 
+String floorSelected;
+String tempGetNumberPlate;
+String finalFloor;
+
 enum STATE {
   MAIN,
   SCAN,
@@ -68,10 +72,6 @@ class TextDetectorViewState extends State<GuardScreen> {
   String name, numPlate, ph, fac;
   int pay = 0;
 
-  String floorSelected;
-  String tempGetNumberPlate;
-  String finalFloor;
-
 
 
   @override
@@ -84,7 +84,7 @@ class TextDetectorViewState extends State<GuardScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
+    parkingFloorNames.clear();
     fToast = FToast();
     fToast.init(context);
   }
@@ -332,12 +332,12 @@ class TextDetectorViewState extends State<GuardScreen> {
         Map<String, dynamic> data = docSnapshot.data();
 
         final c = data['count'];
-
+        final r = data['Reserved'];
         setState(() {
           floorCount = c;
         });
         final fBox = CustomFloorTile(
-          floorName: parkingFloorNames[i], count: floorCount,callBackState: callBackState,);
+          floorName: parkingFloorNames[i], reserved: r.toString(), count: floorCount,callBackState: callBackState,);
         floorsBox.add(fBox);
       }
     }
@@ -438,7 +438,7 @@ class TextDetectorViewState extends State<GuardScreen> {
                         // });
 
                         _firestore.collection('Parking Area').doc(
-                            floor) // <-- Document ID
+                            flor) // <-- Document ID
                             .set({
                           'AreaTitle': at,
                           'Reserved': rc,
@@ -554,6 +554,20 @@ class TextDetectorViewState extends State<GuardScreen> {
               elevation: 20,
               backgroundColor: color,
               automaticallyImplyLeading: false,
+              leading:
+              IconButton(
+                  icon: Icon(
+                    Icons.logout_sharp,
+                    color: Colors.red,
+                  ),
+                  onPressed: () async {
+                    SharedPreferences pref = await SharedPreferences.getInstance();
+                    pref.remove('email');
+                    showToast('LOGGED OUT', Colors.lightBlueAccent, Icons.check);
+                    _auth.signOut();
+                    Navigator.popAndPushNamed(context, LoginScreen.id);
+                    //Navigator.pushNamed(context, LoginScreen.id);
+                  }),
             ),
             resizeToAvoidBottomInset: true,
             body: Padding(
@@ -793,7 +807,7 @@ class TextDetectorViewState extends State<GuardScreen> {
     }
     scan(context) {
       return CameraView(
-        title: 'SCAN NUMBER PLATE',
+        title: 'SCAN NUMBER PLATE ($vehicle_status)',
         customPaint: customPaint,
         onImage: (inputImage) async {
           await processImage(inputImage);

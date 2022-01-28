@@ -70,21 +70,22 @@ class _CameraViewState extends State<CameraView> {
     super.dispose();
   }
 
-  Future<void> _showMyDialog(String text, String anim) async {
-    return showDialog<void>(
-      context: context,
 
+  Future<void> showMyWrongDialog(String text, String anim) async {
+    return showDialog(
+      context: context,
       //barrierColor:  Colors.deepOrange.withOpacity(0.5),// user must tap button!
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: Colors.black,
           shape: OutlineInputBorder(
               borderRadius: BorderRadius.circular(20.0)),
-          title: Image.asset('images/$anim.gif',height: 100.0, width: 100.0,),
+          title: Image.asset('images/$anim.gif', height: 100.0, width: 100.0,),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Center(child: Text('$text')),
+
               ],
             ),
           ),
@@ -92,13 +93,179 @@ class _CameraViewState extends State<CameraView> {
             TextButton(
               child: const Text('OK'),
               onPressed: () {
-                Navigator.of(context).pop();
+
+                Navigator.of(context, rootNavigator: true).pop();
               },
             ),
           ],
         );
       },
     );
+  }
+
+  updateTrafficMonitor(floor) async{
+    print('in traffic updater');
+    try{
+      for (int i = 0; i < trafficMonitorDocNames.length; i++) {
+        var docSnapshot = await _firestore
+            .collection('TrafficMonitor')
+            .doc(trafficMonitorDocNames[i])
+            .get();
+        if (docSnapshot.exists) {
+          Map<String, dynamic> data = docSnapshot.data();
+
+          final n = data['number_plate'];
+          final t = data['time_date'];
+          final status = data['status'];
+          final flor = data['floor'];
+          final type = data['type'];
+
+          if(n == tempGetNumberPlate && status == true){
+            try{
+              var docSnapshot =
+              await _firestore.collection('TrafficMonitor').doc(trafficMonitorDocNames[i]).get();
+              if (docSnapshot.exists) {
+                //Map<String, dynamic> data = docSnapshot.data();
+
+
+                _firestore.collection('TrafficMonitor').doc() // <-- Document ID
+                    .set({
+                  'number_plate' : n,
+                  'time_date' : TextDetectorViewState().getTime(),
+                  'status': false,
+                  'floor' : flor,
+                  'type': vehicle_status,
+                });
+                _firestore.collection('TrafficMonitor').doc(trafficMonitorDocNames[i]) // <-- Document ID
+                    .set({
+                  'number_plate' : n,
+                  'time_date' : t,
+                  'status': false,
+                  'floor' : flor,
+                  'type': type,
+                });
+
+                try {
+                  var docSnapshot =
+                  await _firestore.collection('Parking Area').doc(flor).get();
+                  if (docSnapshot.exists) {
+                    Map<String, dynamic> data = docSnapshot.data();
+
+                    final at = data['AreaTitle'];
+                    final rc = data['Reserved'];
+                    final c = data['count'];
+
+                    try {
+                      var docSnapshot = await _firestore.collection('Parking Area').get();
+                      if (docSnapshot != null) {
+                        //Map<String, dynamic> data = docSnapshot.data();
+                        // setState(() {
+                        //   currentState = WAIT.RESERVATIONS;
+                        // });
+
+                        _firestore.collection('Parking Area').doc(
+                            flor) // <-- Document ID
+                            .set({
+                          'AreaTitle': at,
+                          'Reserved': rc,
+                          'count': c - 1,
+                        });
+                        showToast(
+                            'Overall count updated\nFLOOR | $flor', Colors.greenAccent, Icons.check);
+                      } else {
+                        showToast('error', Colors.redAccent, Icons.clear);
+                        // setState(() {
+                        //   currentState = WAIT.RESERVATIONS;
+                        // });
+                        //showMyDialog('NO RECORD FOUND','cross');
+                      }
+                    } catch (e) {
+                      showToast('$e', Colors.redAccent, Icons.clear);
+                    }
+                  } else {
+                    showToast('no floor record found', Colors.redAccent, Icons.clear);
+                  }
+                } catch (e) {
+                  showToast('$e', Colors.redAccent, Icons.clear);
+                }
+
+                //showMyDialog('$carName has been Verified','tick');
+                showToast('updated', Colors.greenAccent, Icons.check);
+
+              } else {
+                showToast('updation error', Colors.redAccent, Icons.clear);
+
+                //showMyDialog('NO RECORD FOUND','cross');
+              }
+            }
+            catch(e){
+              showToast('doc id error', Colors.redAccent, Icons.clear);
+            }
+          }
+          else
+          {
+            print('fucked up');
+          }
+        }
+      }
+    }
+    catch(e){
+      showToast('doc id error', Colors.redAccent, Icons.clear);
+    }
+
+  }
+
+  updateParkingCountAuto(floor, modeOfEntry) async {
+    if(modeOfEntry == 'entry') {
+      try {
+        var docSnapshot =
+        await _firestore.collection('Parking Area').doc(floor).get();
+        if (docSnapshot.exists) {
+          Map<String, dynamic> data = docSnapshot.data();
+
+          final at = data['AreaTitle'];
+          final rc = data['Reserved'];
+          final c = data['count'];
+
+          try {
+            var docSnapshot = await _firestore.collection('Parking Area').get();
+            if (docSnapshot != null) {
+              //Map<String, dynamic> data = docSnapshot.data();
+              // setState(() {
+              //   currentState = WAIT.RESERVATIONS;
+              // });
+
+              _firestore.collection('Parking Area').doc(
+                  floor) // <-- Document ID
+                  .set({
+                'AreaTitle': at,
+                'Reserved': rc,
+                'count': c + 1,
+              });
+              showToast(
+                  'Overall count updated', Colors.greenAccent, Icons.check);
+            } else {
+              showToast('error', Colors.redAccent, Icons.clear);
+              // setState(() {
+              //   currentState = WAIT.RESERVATIONS;
+              // });
+              //showMyDialog('NO RECORD FOUND','cross');
+            }
+          } catch (e) {
+            showToast('$e', Colors.redAccent, Icons.clear);
+          }
+        } else {
+          showToast('no floor record found', Colors.redAccent, Icons.clear);
+        }
+      } catch (e) {
+        showToast('$e', Colors.redAccent, Icons.clear);
+      }
+    }
+    else if (modeOfEntry == 'exit'){
+      updateTrafficMonitor(floor);
+    }
+    else
+      showToast('error in mode of entry', Colors.redAccent, Icons.clear);
   }
 
   getUserInfo(String sendToFb) async {
@@ -113,19 +280,30 @@ class _CameraViewState extends State<CameraView> {
         //   currentState = WAIT.DATA_FETCHED;
         // });
 
-        _firestore.collection('TrafficMonitor').doc() // <-- Document ID
-            .set({
-          'number_plate': sendToFb,
-          'type': vehicle_status,
-          'time_date': TextDetectorViewState().getTime(),
+        if(vehicle_status == 'entry') {
+          _firestore.collection('TrafficMonitor').doc()
+              .set({
+            'number_plate': sendToFb,
+            'type': vehicle_status,
+            'time_date': TextDetectorViewState().getTime(),
+            'floor': finalFloor,
+            'status': true,
+          });
+        }
+
+        setState(() {
+          tempGetNumberPlate = sendToFb;
         });
 
-        _showMyDialog('$carName has been Verified','tick');
+        if(finalFloor == null){finalFloor = '';}
+        updateParkingCountAuto(finalFloor.toUpperCase(), vehicle_status);
+
+        showMyWrongDialog('$carName has been Verified\n\n TYPE: $vehicle_status', 'tick');
         //showToast('$carName has been Verified', Colors.greenAccent, Icons.check);
       } else {
         //showToast('No record found', Colors.redAccent, Icons.clear);
 
-        _showMyDialog('NO RECORD FOUND','cross');
+        showMyWrongDialog('NO RECORD FOUND', 'cross');
       }
     } catch (e) {
       showToast('$e', Colors.redAccent, Icons.clear);

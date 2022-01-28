@@ -145,13 +145,13 @@ class ButtonBuilder extends StatelessWidget {
       child: Material(
         elevation: 5.0,
         color: color,
-        borderRadius: BorderRadius.circular(30.0),
+        borderRadius: BorderRadius.circular(15.0),
         child: MaterialButton(
           onPressed: onPress,
           minWidth: 200.0,
           height: 42.0,
           child: Text(
-            text, style: TextStyle(fontSize: 15),
+            text, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ),
       ),
@@ -340,8 +340,9 @@ class CustomFloorTile extends StatelessWidget{
 
   final floorName;
   final count;
+  final reserved;
   final Function callBackState;
-  const CustomFloorTile({Key key, this.count, this.floorName, this.callBackState}) : super(key: key);
+  const CustomFloorTile({Key key, this.count, this.floorName, this.callBackState, this.reserved}) : super(key: key);
 
 
   @override
@@ -385,14 +386,20 @@ class CustomFloorTile extends StatelessWidget{
                   }),
                   Text(
                     ' $count ',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
                   ),
                   RoundButtonBuilder(splashcolor: Colors.greenAccent, sizeConstraints: 40, customButtonIcon: Icons.add, onPress: (){
                     callBackState(true, floorName, count + 1);
                   }),
                 ],
               ),
-
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text("\nReserved | $reserved", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ],
           ),
           // subtitle: Row(
@@ -544,6 +551,73 @@ class CustomReserveTile extends StatelessWidget{
                 children: <Widget>[
                   Icon(Icons.add_business_sharp),
                   Text(" Parking Floor | $floorName", style: TextStyle(color: Colors.white))
+                ],
+              ),
+            ],
+          ),
+          trailing:
+          Icon(Icons.keyboard_arrow_right, color: Colors.white, size: 30.0)),
+
+    );
+  }
+}
+
+class CustomStatusTile extends StatelessWidget{
+
+  final floor;
+  final status;
+  final time;
+  final type;
+  final numberPlate;
+
+  const CustomStatusTile({Key key, this.numberPlate, this.floor, this.status, this.time, this.type}) : super(key: key);
+
+
+  @override
+  Widget build(BuildContext context) {
+
+
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: ListTile(
+          hoverColor: Colors.black54,
+          tileColor: status == false? Colors.redAccent: Colors.green,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+          leading: Container(
+            padding: EdgeInsets.only(right: 12.0),
+            decoration: new BoxDecoration(
+                border: new Border(
+                    right: new BorderSide(width: 1.0, color: Colors.white24))),
+            child: type == 'entry'? Icon(Icons.arrow_forward_rounded, color: Colors.lightGreenAccent,size: 40,)
+                :Icon(Icons.arrow_back_rounded, color: Colors.black,size: 40),
+          ),
+          title: Text(
+            '$numberPlate',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          // subtitle: Text("Intermediate", style: TextStyle(color: Colors.white)),
+
+          subtitle: Column(
+            children: [
+              Row(
+                children: <Widget>[
+                  Icon(Icons.access_alarm),
+                  Text(" Time | $time", style: TextStyle(color: Colors.white))
+                ],
+              ),
+              Row(
+                children: <Widget>[
+                  Icon(Icons.car_rental),
+                  Text(" Mode of Entry | $type", style: TextStyle(color: Colors.white))
+                ],
+              ),
+              Row(
+                children: <Widget>[
+                  Icon(Icons.add_business_sharp),
+                  Text(" Parking Floor | $floor", style: TextStyle(color: Colors.white))
                 ],
               ),
             ],

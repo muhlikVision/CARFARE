@@ -24,6 +24,7 @@ enum WAIT {
   SUPPORT,
   RESERVATIONS,
   SHOW_RESERVATIONS,
+  MY_STATUS,
 }
 
 List<String> parkingFloorNames = [''];
@@ -43,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<CustomTile> carsBox = [];
   List<CustomReserveTile> rBox = [];
   List<CustomFloorDisplayTile> rdBox = [];
+  List<CustomStatusTile> statusBox = [];
 
   final floorCont = TextEditingController();
   final numpCont = TextEditingController();
@@ -175,7 +177,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   checkReservationsCountAuto() async {
     try {
-      List<dynamic> docid;
       final QuerySnapshot result =
           await _firestore.collection('Reservations').get();
 
@@ -461,9 +462,7 @@ class _HomeScreenState extends State<HomeScreen> {
   getUserInfo() async {
     try {
       var docSnapshot = await _firestore
-          .collection('Users')
-          .doc('Student')
-          .collection('Students')
+          .collection('Customer')
           .doc(loggedInUid)
           .get();
       if (docSnapshot.exists) {
@@ -630,8 +629,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                 });
                               });
                             },
-                            color: Colors.greenAccent,
+                            color: Colors.green,
                             text: 'START DATE/TIME'),
+
                         ButtonBuilder(
                             onPress: () async {
                               bool chk = false;
@@ -816,7 +816,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   getReservationInfo() async {
     try {
-      List<dynamic> docid;
+
       final QuerySnapshot result =
           await _firestore.collection('Reservations').get();
 
@@ -949,6 +949,87 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  getMyStatus()async{
+    try {
+
+      final QuerySnapshot result =
+      await _firestore.collection('TrafficMonitor').get();
+
+      if (result.docs.isNotEmpty) {
+        //Map<String, dynamic> data = docSnapshot.data();
+        final List<DocumentSnapshot> documents = result.docs;
+
+        try {
+          for (int i = 0; i < documents.length; i++) {
+            print(documents[i].id);
+            var docSnapshot = await _firestore
+                .collection('TrafficMonitor')
+                .doc(documents[i].id)
+                .get();
+            if (docSnapshot.exists) {
+              Map<String, dynamic> data = docSnapshot.data();
+
+              final floor = data['floor'];
+              final nplate = data['number_plate'];
+              final status = data['status'];
+              final time = data['time_date'];
+              final type = data['type'];
+
+
+              for(int i = 0; i < myVehicles.length; i++)
+                {
+                  if(myVehicles[i] == nplate){
+                    final sBox = CustomStatusTile(floor: floor.toString(), numberPlate: nplate.toString(), status: status, time: time.toString(), type: type.toString(),);
+                    statusBox.add(sBox);
+                  }
+                }
+            }
+          }
+          setState(() {
+            currentState = WAIT.MY_STATUS;
+          });
+        } catch (e) {
+          print(e);
+          showToast('$e', Colors.redAccent, Icons.clear);
+        }
+      } else {
+        print('nothing found');
+      }
+    } catch (e) {
+      print(e);
+      showToast('$e', Colors.redAccent, Icons.clear);
+    }
+  }
+
+  checkMyCurrentStatus(context) {
+    return WillPopScope(
+      onWillPop: () async {
+        return;
+      },
+      child: Scaffold(
+        backgroundColor: Color(0xFF141313),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              setState(() {
+                currentState = WAIT.DATA_FETCHED;
+              });
+              statusBox.clear();
+            },
+          ),
+          title: Text('My Current Status'),
+          elevation: 20,
+          backgroundColor: color,
+        ),
+        body: ListView(
+          shrinkWrap: true,
+          children: statusBox,
+        ),
+      ),
+    );
+  }
+
   homeScreen(context) {
     return WillPopScope(
       onWillPop: () async {
@@ -962,6 +1043,19 @@ class _HomeScreenState extends State<HomeScreen> {
             title: Text('$name'),
             elevation: 20,
             backgroundColor: color,
+            actions: <Widget>[
+              Center(child: Text('', style: TextStyle(fontSize: 20),)),
+              IconButton(
+                  icon: Icon(Icons.arrow_circle_up, color: Colors.green,),
+                  onPressed: () async {
+                    rdBox.clear();
+                    parkingFloorNames.clear();
+                    setState(() {
+                      currentState = WAIT.DATA_IN_PROCESS;
+                    });
+                    getParkingCountStart();
+                  }),
+            ],
           ),
           drawer: Drawer(
             child: Column(
@@ -1089,6 +1183,15 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
+                          ButtonBuilder(
+                              onPress: () {
+                                setState(() {
+                                  currentState = WAIT.DATA_IN_PROCESS;
+                                });
+                                getMyStatus();
+                              },
+                              color: Colors.blue,
+                              text: 'CHECK MY CURRENT STATUS'),
                           SizedBox(
                             height: 8.0,
                           ),
@@ -1127,7 +1230,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (currentState == WAIT.DATA_IN_PROCESS) {
       return ModalProgressHUD(
         inAsyncCall: true,
-        color: Colors.deepOrange,
+        opacity: 1,
+        color: Colors.white10,
         progressIndicator: CircularProgressIndicator(
           color: Colors.deepOrange,
         ),
@@ -1141,6 +1245,8 @@ class _HomeScreenState extends State<HomeScreen> {
       return checkReservations(context);
     } else if (currentState == WAIT.PAYMENTS) {
       return payments(context);
+    } else if (currentState == WAIT.MY_STATUS) {
+      return checkMyCurrentStatus(context);
     } else {
       return homeScreen(context);
     }
